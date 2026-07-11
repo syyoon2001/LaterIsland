@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { seedCategories, seedContents, seedTags } from '../data/seed';
 import type {
   Category,
@@ -72,6 +72,25 @@ export function useLaterIslandState() {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleJump = (e: any) => {
+      const { target, lang } = e.detail;
+      if (lang) setSettingsLanguage(lang);
+      if (['home', 'category', 'add', 'tags', 'done'].includes(target)) {
+        setActiveTab(target as Tab);
+        setShowSettings(false);
+      } else if (target === 'settings') {
+        setShowSettings(true);
+      }
+    };
+    window.addEventListener('simulation-jump', handleJump);
+    return () => window.removeEventListener('simulation-jump', handleJump);
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('simulation-sync', { detail: { screen: 'app', activeTab, showSettings, settingsLanguage } }));
+  }, [activeTab, showSettings, settingsLanguage]);
 
   const setTab = (tab: Tab) => {
     setActiveTab(tab);
