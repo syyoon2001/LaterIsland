@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { margin: 0; background: #E6F1E3; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    input, button { outline: none; }
+    input::placeholder { color: #3F5240; opacity: 0.4; }
+  </style>
+</helmet>
+
+<div style="aspect-ratio:9/16; height:100vh; max-height:100vh; width:min(100vw, calc(100vh * 9 / 16)); background:#F7F9F2; color:#3F5240; font-family:'Space Grotesk', sans-serif; position:relative; overflow:hidden; border:1px solid rgba(63,82,64,0.15); border-radius:28px; box-shadow:0 8px 30px rgba(63,82,64,0.12); box-sizing:border-box;">
+
+  <div style="position:absolute; inset:0; overflow:hidden; padding:44px 24px 32px; display:flex; flex-direction:column; align-items:center;">
+
+    <img src="./assets/logo-book.png" alt="" style="width:72px; height:72px; object-fit:contain;" />
+    <img src="./assets/logo-wordmark.png" alt="Later Island" style="width:150px; object-fit:contain; margin-top:-4px; margin-bottom:28px;" />
+
+    <div style="width:100%; display:flex; border:1px solid rgba(63,82,64,0.2); border-radius:999px; overflow:hidden; margin-bottom:28px;">
+      <div onClick="{{ setModeLogin }}" style="flex:1; text-align:center; padding:12px; font-size:14px; font-weight:700; cursor:pointer; border-radius:999px; background:{{ loginBg }}; color:{{ loginFg }};">로그인</div>
+      <div onClick="{{ setModeSignup }}" style="flex:1; text-align:center; padding:12px; font-size:14px; font-weight:700; cursor:pointer; border-radius:999px; background:{{ signupBg }}; color:{{ signupFg }};">회원가입</div>
+    </div>
+
+    <div style="width:100%; display:flex; flex-direction:column; gap:14px;">
+
+      <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">이름</label>
+          <input value="{{ name }}" onChange="{{ onNameChange }}" placeholder="이름을 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+        </div>
+      </sc-if>
+
+      <div>
+        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">이메일</label>
+        <input value="{{ email }}" onChange="{{ onEmailChange }}" placeholder="you@example.com" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+      </div>
+
+      <div>
+        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">비밀번호</label>
+        <input type="password" value="{{ password }}" onChange="{{ onPasswordChange }}" placeholder="비밀번호를 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+      </div>
+
+      <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">비밀번호 확인</label>
+          <input type="password" value="{{ passwordConfirm }}" onChange="{{ onPasswordConfirmChange }}" placeholder="비밀번호를 다시 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+        <div style="text-align:right; margin-top:-6px;">
+          <span style="font-size:12px; color:#6E8C6A; font-weight:600; cursor:pointer;">비밀번호를 잊으셨나요?</span>
+        </div>
+      </sc-if>
+
+      <button onClick="{{ noop }}" style="width:100%; border:1px solid #6E8C6A; border-radius:10px; padding:14px; background:#6E8C6A; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:6px;">{{ submitLabel }}</button>
+
+      <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+        <div style="flex:1; height:1px; background:rgba(63,82,64,0.15);"></div>
+        <div style="font-size:11px; opacity:0.5;">또는</div>
+        <div style="flex:1; height:1px; background:rgba(63,82,64,0.15);"></div>
+      </div>
+
+      <button onClick="{{ noop }}" style="width:100%; border:1px solid rgba(63,82,64,0.25); border-radius:10px; padding:13px; background:#fff; color:#3F5240; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">Google로 계속하기</button>
+
+    </div>
+
+    <div style="flex:1;"></div>
+
+    <div style="font-size:12px; opacity:0.55; text-align:center; padding-top:20px;">{{ switchPrompt }} <span onClick="{{ toggleMode }}" style="color:#6E8C6A; font-weight:700; cursor:pointer;">{{ switchAction }}</span></div>
+
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    mode: 'login',
+    name: '',
+    email: '',
+    password: '',
+    passwordConfirm: '',
+  };
+
+  setMode = (mode) => this.setState({ mode });
+  toggleMode = () => this.setState((prev) => ({ mode: prev.mode === 'login' ? 'signup' : 'login' }));
+
+  onNameChange = (e) => this.setState({ name: e.target.value });
+  onEmailChange = (e) => this.setState({ email: e.target.value });
+  onPasswordChange = (e) => this.setState({ password: e.target.value });
+  onPasswordConfirmChange = (e) => this.setState({ passwordConfirm: e.target.value });
+
+  renderVals() {
+    const { mode, name, email, password, passwordConfirm } = this.state;
+    const isLogin = mode === 'login';
+    const isSignup = mode === 'signup';
+    return {
+      noop: () => {},
+      isLogin,
+      isSignup,
+      setModeLogin: () => this.setMode('login'),
+      setModeSignup: () => this.setMode('signup'),
+      toggleMode: this.toggleMode,
+      loginBg: isLogin ? '#6E8C6A' : '#F7F9F2',
+      loginFg: isLogin ? '#fff' : '#3F5240',
+      signupBg: isSignup ? '#6E8C6A' : '#F7F9F2',
+      signupFg: isSignup ? '#fff' : '#3F5240',
+      name,
+      email,
+      password,
+      passwordConfirm,
+      onNameChange: this.onNameChange,
+      onEmailChange: this.onEmailChange,
+      onPasswordChange: this.onPasswordChange,
+      onPasswordConfirmChange: this.onPasswordConfirmChange,
+      submitLabel: isLogin ? '로그인' : '회원가입',
+      switchPrompt: isLogin ? '계정이 없으신가요?' : '이미 계정이 있으신가요?',
+      switchAction: isLogin ? '회원가입' : '로그인',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

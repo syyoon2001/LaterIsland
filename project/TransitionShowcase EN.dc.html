@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { margin: 0; background: #EDE9E2; }
+    * { scrollbar-width: thin; scrollbar-color: #E0E8E1 transparent; }
+    *::-webkit-scrollbar { width: 6px; height: 6px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: #E0E8E1; border-radius: 10px; }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; padding:48px 24px 80px; font-family:'Plus Jakarta Sans', sans-serif; color:#3F5240; box-sizing:border-box;">
+
+  <div style="max-width:1000px; margin:0 auto;">
+
+    <div style="margin-bottom:12px;">
+      <div style="font-size:22px; font-weight:700;">Transition Interaction Demo</div>
+      <div style="font-size:14px; opacity:0.6; margin-top:4px;">The cover screen shows for about 2.5 seconds, then fades out via an opacity animation to reveal the LaterIsland screen beneath.</div>
+    </div>
+
+    <div style="display:flex; align-items:flex-start; gap:24px; margin-bottom:56px; flex-wrap:wrap;">
+
+    <div style="width:390px; height:693px; position:relative; border-radius:28px; overflow:hidden; box-shadow:0 12px 40px rgba(63,82,64,0.18);">
+      <iframe src="./LaterIsland EN.dc.html" title="LaterIsland" style="position:absolute; inset:0; width:100%; height:100%; border:none;"></iframe>
+      <iframe ref="{{ coverRef }}" src="./CoverScreen EN.dc.html" title="CoverScreen" style="position:absolute; inset:0; width:100%; height:100%; border:none;"></iframe>
+    </div>
+
+    <div style="background:#F7F9F2; border:1px solid rgba(63,82,64,0.15); border-radius:20px; box-shadow:0 8px 24px rgba(63,82,64,0.1); padding:20px; display:flex; flex-direction:column; gap:16px; min-width:180px; font-family:'Plus Jakarta Sans', sans-serif;">
+      <div style="font-size:13px; font-weight:700; opacity:0.6;">Icon Set</div>
+
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <div style="width:14px; height:14px; border-radius:50%; background:#6E8C6A;"></div>
+        </div>
+        <div style="font-size:13px;">Tab indicator</div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <div style="font-size:13px;">Search</div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+            <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+            <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+            <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+          </svg>
+        </div>
+        <div style="font-size:13px;">Bento menu</div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="12" height="12" rx="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </div>
+        <div style="font-size:13px;">Copy</div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </div>
+        <div style="font-size:13px;">Back</div>
+      </div>
+    </div>
+
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:22px; font-weight:700;">Screen Snapshots</div>
+      <div style="font-size:14px; opacity:0.6; margin-top:4px;">Loads the existing CoverScreen and all 5 LaterIsland tabs as static snapshots.</div>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:24px;">
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe src="./CoverScreen EN.dc.html" title="Cover" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Cover</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe src="./AuthScreen EN.dc.html" title="Auth" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Log In / Sign Up</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe src="./LaterIsland EN.dc.html" title="Home" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Home</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe ref="{{ categoryRef }}" src="./LaterIsland EN.dc.html" title="Category" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Category</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe ref="{{ addRef }}" src="./LaterIsland EN.dc.html" title="Add" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Add</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe ref="{{ tagsRef }}" src="./LaterIsland EN.dc.html" title="Tags" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Tag</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe ref="{{ doneRef }}" src="./LaterIsland EN.dc.html" title="Done" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Done</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe ref="{{ settingsRef }}" src="./LaterIsland EN.dc.html" title="Settings" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Settings</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe ref="{{ searchPopoverRef }}" src="./LaterIsland EN.dc.html" title="Search Popover" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Search Popover</div>
+      </div>
+
+      <div>
+        <div style="width:390px; height:693px; border-radius:28px; overflow:hidden; border:1px solid rgba(63,82,64,0.15); box-shadow:0 12px 40px rgba(63,82,64,0.18); position:relative;">
+          <iframe ref="{{ menuPopoverRef }}" src="./LaterIsland EN.dc.html" title="Menu Popover" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:600;">Bento Menu Popover</div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  coverRef = React.createRef();
+  categoryRef = React.createRef();
+  addRef = React.createRef();
+  tagsRef = React.createRef();
+  doneRef = React.createRef();
+  settingsRef = React.createRef();
+  searchPopoverRef = React.createRef();
+  menuPopoverRef = React.createRef();
+
+  clickTabInIframe(iframe, label) {
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc) return false;
+      const all = doc.querySelectorAll('div');
+      for (const n of all) {
+        if (n.children.length === 0 && n.textContent.trim() === label) {
+          const p = n.parentElement;
+          if (p && p.children.length === 2 && p.children[0].style && p.children[0].style.borderRadius === '50%') {
+            p.click();
+            return true;
+          }
+        }
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  wireTabSnapshot(ref, label) {
+    const iframe = ref.current;
+    if (!iframe) return;
+    const attempt = () => {
+      if (!this.clickTabInIframe(iframe, label)) {
+        setTimeout(attempt, 150);
+      }
+    };
+    iframe.addEventListener('load', () => setTimeout(attempt, 150));
+  }
+
+  wireSettingsSnapshot(ref) {
+    const iframe = ref.current;
+    if (!iframe) return;
+    const openMenuAttempt = () => {
+      try {
+        const doc = iframe.contentDocument;
+        const menuBtn = doc && doc.querySelector('button[aria-label="Menu"]');
+        if (menuBtn) {
+          menuBtn.click();
+          setTimeout(clickSettingsAttempt, 150);
+          return;
+        }
+      } catch (e) {}
+      setTimeout(openMenuAttempt, 150);
+    };
+    const clickSettingsAttempt = () => {
+      try {
+        const doc = iframe.contentDocument;
+        const all = doc.querySelectorAll('div');
+        for (const n of all) {
+          if (n.children.length === 0 && n.textContent.trim() === 'Settings') {
+            n.click();
+            return;
+          }
+        }
+      } catch (e) {}
+      setTimeout(clickSettingsAttempt, 150);
+    };
+    iframe.addEventListener('load', () => setTimeout(openMenuAttempt, 150));
+  }
+
+  wireButtonClickSnapshot(ref, ariaLabel) {
+    const iframe = ref.current;
+    if (!iframe) return;
+    const attempt = () => {
+      try {
+        const doc = iframe.contentDocument;
+        const btn = doc && doc.querySelector('button[aria-label="' + ariaLabel + '"]');
+        if (btn) {
+          btn.click();
+          return;
+        }
+      } catch (e) {}
+      setTimeout(attempt, 150);
+    };
+    iframe.addEventListener('load', () => setTimeout(attempt, 150));
+  }
+
+  componentDidMount() {
+    setTimeout(() => {
+      const el = this.coverRef.current;
+      if (el) {
+        el.style.transition = 'opacity 1s ease';
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
+      }
+    }, 2500);
+
+    this.wireTabSnapshot(this.categoryRef, 'Category');
+    this.wireTabSnapshot(this.addRef, 'Add');
+    this.wireTabSnapshot(this.tagsRef, 'Tag');
+    this.wireTabSnapshot(this.doneRef, 'Done');
+    this.wireSettingsSnapshot(this.settingsRef);
+    this.wireButtonClickSnapshot(this.searchPopoverRef, 'Search');
+    this.wireButtonClickSnapshot(this.menuPopoverRef, 'Menu');
+  }
+
+  renderVals() {
+    return {
+      coverRef: this.coverRef,
+      categoryRef: this.categoryRef,
+      addRef: this.addRef,
+      tagsRef: this.tagsRef,
+      doneRef: this.doneRef,
+      settingsRef: this.settingsRef,
+      searchPopoverRef: this.searchPopoverRef,
+      menuPopoverRef: this.menuPopoverRef,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

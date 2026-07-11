@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { margin: 0; background: #E6F1E3; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    input, textarea, button { outline: none; }
+    input::placeholder, textarea::placeholder { color: #3F5240; opacity: 0.45; }
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+  </style>
+</helmet>
+
+<div style="aspect-ratio:9/16; height:100vh; max-height:100vh; width:min(100vw, calc(100vh * 9 / 16)); background:#E6F1E3; color:#3F5240; font-family:'Plus Jakarta Sans', sans-serif; position:relative; overflow:hidden; border:1px solid rgba(63,82,64,0.15); border-radius:28px; box-shadow:0 8px 30px rgba(63,82,64,0.12); box-sizing:border-box;">
+
+  <sc-if value="{{ showAppShell }}" hint-placeholder-val="{{ true }}">
+  <div style="position:absolute; inset:0;">
+
+  <div style="position:absolute; top:0; left:0; right:0; height:76px; display:flex; align-items:center; justify-content:space-between; gap:6px; padding:0 12px 0 16px; border-bottom:1px solid rgba(63,82,64,0.12); background:#E6F1E3; z-index:2;">
+    <div style="display:flex; align-items:center; gap:6px;">
+      <img src="./assets/logo-book.png" alt="" style="width:52px; height:52px; object-fit:contain; margin-left:-4px;" />
+      <img src="./assets/logo-wordmark.png" alt="Later Island" style="height:22px; object-fit:contain;" />
+    </div>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <button onClick="{{ toggleSearch }}" aria-label="Search" style="width:36px; height:36px; border:none; background:transparent; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:rgba(63,82,64,0.08);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+      <button onClick="{{ toggleMenu }}" aria-label="Menu" style="width:36px; height:36px; border:none; background:transparent; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:rgba(63,82,64,0.08);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+          <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+          <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+          <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSearch }}" style="position:absolute; inset:0; z-index:8;"></div>
+    <div style="position:absolute; top:64px; right:52px; z-index:9; width:min(240px, calc(100% - 24px)); background:#F7F9F2; border:1px solid rgba(63,82,64,0.15); border-radius:12px; box-shadow:0 8px 24px rgba(63,82,64,0.15); padding:10px; display:flex; flex-direction:column; gap:8px;">
+      <input value="{{ searchQuery }}" onChange="{{ onSearchQueryChange }}" placeholder="Search" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+      <button onClick="{{ noop }}" style="align-self:flex-start; border:1px solid #6E8C6A; border-radius:8px; padding:6px 12px; background:#fff; color:#6E8C6A; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;">✦ AI Search</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeMenu }}" style="position:absolute; inset:0; z-index:8;"></div>
+    <div style="position:absolute; top:64px; right:12px; z-index:9; background:#F7F9F2; border:1px solid rgba(63,82,64,0.15); border-radius:12px; box-shadow:0 8px 24px rgba(63,82,64,0.15); min-width:180px; padding:6px; overflow:hidden;">
+      <div onClick="{{ toggleSortSubmenu }}" style="padding:10px 10px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" style-hover="background:rgba(63,82,64,0.08);">
+        <span>Sort by <span style="opacity:0.5; font-weight:400;">· {{ sortOrderLabel }}</span></span>
+        <span style="font-size:11px;">{{ sortCaret }}</span>
+      </div>
+      <sc-if value="{{ sortSubmenuOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; padding:2px 4px 2px 14px;">
+          <div onClick="{{ selectSortLatest }}" style="padding:8px 6px; font-size:12.5px; border-radius:6px; cursor:pointer; color:{{ sortLatestColor }}; font-weight:{{ sortLatestWeight }};" style-hover="background:rgba(63,82,64,0.08);">Newest</div>
+          <div onClick="{{ selectSortOldest }}" style="padding:8px 6px; font-size:12.5px; border-radius:6px; cursor:pointer; color:{{ sortOldestColor }}; font-weight:{{ sortOldestWeight }};" style-hover="background:rgba(63,82,64,0.08);">Oldest</div>
+          <div onClick="{{ selectSortAlpha }}" style="padding:8px 6px; font-size:12.5px; border-radius:6px; cursor:pointer; color:{{ sortAlphaColor }}; font-weight:{{ sortAlphaWeight }};" style-hover="background:rgba(63,82,64,0.08);">A–Z</div>
+        </div>
+      </sc-if>
+      <div onClick="{{ closeMenu }}" style="padding:10px 10px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:rgba(63,82,64,0.08);">Edit</div>
+      <div style="height:1px; background:rgba(63,82,64,0.12); margin:4px 6px;"></div>
+      <div onClick="{{ goSettings }}" style="padding:10px 10px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:rgba(63,82,64,0.08);">Settings</div>
+    </div>
+  </sc-if>
+
+  <div id="ls-scroll-content" style="position:absolute; top:76px; left:0; right:0; bottom:76px; overflow-y:auto;">
+
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="Home">
+        <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+          <sc-for list="{{ pendingContents }}" as="item" hint-placeholder-count="3">
+            <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" hint-size="100%,140px"></dc-import>
+          </sc-for>
+          <sc-if value="{{ isHomeEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:60px 0; text-align:center; opacity:0.4; font-size:13px;">No saved content yet</div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCategory }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Category">
+        <div style="padding:20px;">
+
+          <sc-if value="{{ hasSelectedCategory }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+              <button onClick="{{ backFromCategory }}" aria-label="Back" style="border:none; background:transparent; color:#3F5240; width:32px; height:32px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:rgba(63,82,64,0.08);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+              </button>
+              <div style="font-size:20px; font-weight:700;">{{ selectedCategoryName }}</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ categoryListView }}" hint-placeholder-val="{{ true }}">
+            <sc-for list="{{ categoryRows }}" as="cat" hint-placeholder-count="5">
+              <div onClick="{{ cat.onSelect }}" style="display:flex; justify-content:space-between; align-items:center; padding:16px 4px; border-bottom:1px solid rgba(63,82,64,0.12); cursor:pointer;">
+                <div style="font-size:15px; font-weight:600;">{{ cat.name }}</div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="font-size:12px; opacity:0.5;">{{ cat.countLabel }}</div>
+                  <div style="font-size:14px;">→</div>
+                </div>
+              </div>
+            </sc-for>
+          </sc-if>
+          <sc-if value="{{ hasSelectedCategory }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-direction:column; gap:20px;">
+              <sc-for list="{{ categoryFilteredContents }}" as="item" hint-placeholder-count="2">
+                <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" hint-size="100%,140px"></dc-import>
+              </sc-for>
+            </div>
+            <sc-if value="{{ isCategoryFilteredEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:60px 0; text-align:center; opacity:0.4; font-size:13px;">No content in this category</div>
+            </sc-if>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAdd }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Add Content">
+        <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Title *</label>
+            <input value="{{ formTitle }}" onChange="{{ onTitleChange }}" placeholder="Enter a title" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#F7F9F2; color:#3F5240;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Link (optional)</label>
+            <input value="{{ formUrl }}" onChange="{{ onUrlChange }}" placeholder="https://..." style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#F7F9F2; color:#3F5240;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Summary (optional)</label>
+            <textarea value="{{ formSummary }}" onChange="{{ onSummaryChange }}" placeholder="Leave a summary for later" rows="3" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#F7F9F2; color:#3F5240; resize:none;"></textarea>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Category (format)</label>
+            <div onClick="{{ toggleCategoryDropdown }}" style="display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; cursor:pointer;">
+              <span style="font-size:14px;">{{ selectedCategoryLabel }}</span>
+              <sc-if value="{{ categoryDropdownOpen }}" hint-placeholder-val="{{ false }}"><span>▲</span></sc-if>
+              <sc-if value="{{ categoryDropdownClosed }}" hint-placeholder-val="{{ true }}"><span>▼</span></sc-if>
+            </div>
+            <sc-if value="{{ categoryDropdownOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid rgba(63,82,64,0.3); border-top:none; border-radius:0 0 10px 10px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+                <sc-for list="{{ formCategoryRows }}" as="cat" hint-placeholder-count="3">
+                  <div onClick="{{ cat.onSelect }}" style="padding:10px; border:1px solid rgba(63,82,64,0.25); border-radius:8px; font-size:13px; cursor:pointer; background:{{ cat.bg }}; color:{{ cat.fg }};">{{ cat.name }}</div>
+                </sc-for>
+                <div style="display:flex; gap:8px; margin-top:4px;">
+                  <input value="{{ newCategoryInput }}" onChange="{{ onNewCategoryChange }}" placeholder="+ New category" style="flex:1; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:8px; padding:10px; font-size:13px; font-family:inherit; background:#F7F9F2; color:#3F5240;" />
+                  <button onClick="{{ addNewCategory }}" style="border:1px solid #6E8C6A; border-radius:8px; padding:10px 14px; background:#6E8C6A; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">Add</button>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Tags (topic)</label>
+            <sc-if value="{{ hasFormTags }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                <sc-for list="{{ selectedFormTagChips }}" as="chip" hint-placeholder-count="2">
+                  <div onClick="{{ chip.onRemove }}" style="border:1px solid rgba(156,181,177,0.6); background:rgba(156,181,177,0.25); border-radius:20px; color:#3F5240; padding:5px 12px; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px;">#{{ chip.name }} <span>×</span></div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div onClick="{{ toggleTagDropdown }}" style="border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; text-align:center; font-size:13px; font-weight:600; cursor:pointer;">Select / add tags</div>
+            <sc-if value="{{ tagDropdownOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid rgba(63,82,64,0.3); border-top:none; border-radius:0 0 10px 10px; padding:12px; display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto;">
+                <sc-for list="{{ formTagRows }}" as="tag" hint-placeholder-count="4">
+                  <div onClick="{{ tag.onToggle }}" style="display:flex; justify-content:space-between; padding:10px; border:1px solid rgba(63,82,64,0.25); border-radius:8px; font-size:13px; cursor:pointer;">
+                    <span>#{{ tag.name }}</span><span>{{ tag.mark }}</span>
+                  </div>
+                </sc-for>
+                <div style="display:flex; gap:8px; margin-top:4px;">
+                  <input value="{{ newTagInput }}" onChange="{{ onNewTagChange }}" placeholder="+ New tag" style="flex:1; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:8px; padding:10px; font-size:13px; font-family:inherit; background:#F7F9F2; color:#3F5240;" />
+                  <button onClick="{{ addNewTag }}" style="border:1px solid #6E8C6A; border-radius:8px; padding:10px 14px; background:#6E8C6A; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">Add</button>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <button onClick="{{ generateAI }}" style="width:100%; border:1px solid #6E8C6A; border-radius:10px; padding:14px; background:#F7F9F2; color:#6E8C6A; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">✦ AI Autofill</button>
+
+          <button onClick="{{ saveContent }}" style="width:100%; border:1px solid #6E8C6A; border-radius:10px; padding:14px; background:#6E8C6A; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">Save</button>
+
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTags }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Tags">
+        <div style="padding:20px 20px 0;">
+          <sc-if value="{{ hasSelectedTag }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+              <button onClick="{{ backFromTag }}" aria-label="Back" style="border:none; background:transparent; color:#3F5240; width:32px; height:32px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:rgba(63,82,64,0.08);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+              </button>
+              <div style="font-size:20px; font-weight:700;">#{{ selectedTagName }}</div>
+            </div>
+          </sc-if>
+        </div>
+        <div style="padding:0 20px 20px;">
+          <sc-if value="{{ tagListView }}" hint-placeholder-val="{{ true }}">
+            <sc-for list="{{ tagRows }}" as="tag" hint-placeholder-count="5">
+              <div onClick="{{ tag.onSelect }}" style="display:flex; justify-content:space-between; align-items:center; padding:16px 4px; border-bottom:1px solid rgba(63,82,64,0.12); cursor:pointer;">
+                <div style="font-size:15px; font-weight:600;">#{{ tag.name }}</div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="font-size:12px; opacity:0.5;">{{ tag.countLabel }}</div>
+                  <div style="font-size:14px;">→</div>
+                </div>
+              </div>
+            </sc-for>
+          </sc-if>
+          <sc-if value="{{ hasSelectedTag }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-direction:column; gap:20px;">
+              <sc-for list="{{ tagFilteredContents }}" as="item" hint-placeholder-count="2">
+                <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" hint-size="100%,140px"></dc-import>
+              </sc-for>
+            </div>
+            <sc-if value="{{ isTagFilteredEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:60px 0; text-align:center; opacity:0.4; font-size:13px;">No content with this tag</div>
+            </sc-if>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Done">
+        <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+          <sc-for list="{{ doneContents }}" as="item" hint-placeholder-count="2">
+            <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" hint-size="100%,140px"></dc-import>
+          </sc-for>
+          <sc-if value="{{ isDoneEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:60px 0; text-align:center; opacity:0.4; font-size:13px;">No completed content yet</div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <div ref="{{ thumbRef }}" style="position:absolute; right:3px; width:4px; border-radius:4px; background:#E0E8E1; top:76px; height:20%; pointer-events:none;"></div>
+
+  <div style="position:absolute; bottom:0; left:0; right:0; height:76px; border-top:1px solid rgba(63,82,64,0.12); background:#E6F1E3; display:flex;">
+    <div onClick="{{ setTabHome }}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+      <div style="width:8px; height:8px; border-radius:50%; background:{{ homeIconBg }};"></div>
+      <div style="font-size:10px; font-weight:{{ homeFontWeight }}; color:{{ homeColor }};">Home</div>
+    </div>
+    <div onClick="{{ setTabCategory }}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+      <div style="width:8px; height:8px; border-radius:50%; background:{{ categoryIconBg }};"></div>
+      <div style="font-size:10px; font-weight:{{ categoryFontWeight }}; color:{{ categoryColor }};">Category</div>
+    </div>
+    <div onClick="{{ setTabAdd }}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+      <div style="width:8px; height:8px; border-radius:50%; background:{{ addIconBg }};"></div>
+      <div style="font-size:10px; font-weight:{{ addFontWeight }}; color:{{ addColor }};">Add</div>
+    </div>
+    <div onClick="{{ setTabTags }}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+      <div style="width:8px; height:8px; border-radius:50%; background:{{ tagsIconBg }};"></div>
+      <div style="font-size:10px; font-weight:{{ tagsFontWeight }}; color:{{ tagsColor }};">Tag</div>
+    </div>
+    <div onClick="{{ setTabDone }}" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+      <div style="width:8px; height:8px; border-radius:50%; background:{{ doneIconBg }};"></div>
+      <div style="font-size:10px; font-weight:{{ doneFontWeight }}; color:{{ doneColor }};">Done</div>
+    </div>
+  </div>
+
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ showSettings }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute; inset:0;">
+
+    <div style="position:absolute; top:0; left:0; right:0; height:76px; display:flex; align-items:center; gap:10px; padding:0 16px; border-bottom:1px solid rgba(63,82,64,0.12); background:#E6F1E3;">
+      <button onClick="{{ backFromSettings }}" aria-label="Back" style="border:none; background:transparent; color:#3F5240; width:36px; height:36px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:rgba(63,82,64,0.08);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <div style="font-size:18px; font-weight:700;">Settings</div>
+    </div>
+
+    <div style="position:absolute; top:76px; left:0; right:0; bottom:0; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px;">
+
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:56px; height:56px; border-radius:50%; background:#F7F9F2; border:1px solid rgba(63,82,64,0.15); flex-shrink:0;"></div>
+        <div style="font-size:16px; font-weight:700;">{{ profileName }}</div>
+      </div>
+
+      <div>
+        <div style="font-size:12px; font-weight:700; opacity:0.6; margin-bottom:10px;">Language</div>
+        <div style="display:flex; border:1px solid rgba(63,82,64,0.25); border-radius:10px; overflow:hidden;">
+          <div onClick="{{ setLangKo }}" style="flex:1; text-align:center; padding:10px; font-size:13px; font-weight:600; cursor:pointer; background:{{ langKoBg }}; color:{{ langKoFg }};">Korean</div>
+          <div onClick="{{ setLangEn }}" style="flex:1; text-align:center; padding:10px; font-size:13px; font-weight:600; cursor:pointer; background:{{ langEnBg }}; color:{{ langEnFg }}; border-left:1px solid rgba(63,82,64,0.25);">English</div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column;">
+        <div onClick="{{ openLogoutConfirm }}" style="padding:16px 4px; border-bottom:1px solid rgba(63,82,64,0.12); font-size:14px; font-weight:600; cursor:pointer;">Log Out</div>
+        <div onClick="{{ openDeleteConfirm }}" style="padding:16px 4px; font-size:14px; font-weight:600; cursor:pointer; color:#B15C4A;">Delete Account</div>
+      </div>
+
+    </div>
+
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmDialog }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; inset:0; z-index:30; background:rgba(63,82,64,0.35); display:flex; align-items:center; justify-content:center;">
+      <div style="width:80%; background:#F7F9F2; border-radius:16px; padding:24px 20px; box-shadow:0 12px 30px rgba(63,82,64,0.25);">
+        <div style="font-size:15px; font-weight:700; margin-bottom:8px;">{{ confirmTitle }}</div>
+        <div style="font-size:13px; opacity:0.65; line-height:1.5; margin-bottom:20px;">{{ confirmBody }}</div>
+        <div style="display:flex; gap:10px;">
+          <button onClick="{{ closeConfirm }}" style="flex:1; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:10px; background:#fff; color:#3F5240; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">Cancel</button>
+          <button onClick="{{ confirmAction }}" style="flex:1; border:1px solid {{ confirmColor }}; border-radius:10px; padding:10px; background:{{ confirmColor }}; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">{{ confirmActionLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  thumbRef = React.createRef();
+
+  updateThumb = () => {
+    const scrollEl = document.getElementById('ls-scroll-content');
+    const thumbEl = this.thumbRef.current;
+    if (!scrollEl || !thumbEl) return;
+    const trackHeight = scrollEl.clientHeight;
+    const shortThumbHeight = Math.max(24, trackHeight * 0.2);
+    const scrollableDist = scrollEl.scrollHeight - scrollEl.clientHeight;
+    const maxThumbTravel = trackHeight - shortThumbHeight;
+    const ratio = scrollableDist > 0 ? scrollEl.scrollTop / scrollableDist : 0;
+    thumbEl.style.height = shortThumbHeight + 'px';
+    thumbEl.style.top = (76 + ratio * maxThumbTravel) + 'px';
+    thumbEl.style.opacity = scrollableDist > 0 ? '1' : '0';
+  };
+
+  componentDidMount() {
+    this._scrollHandler = () => this.updateThumb();
+    document.addEventListener('scroll', this._scrollHandler, true);
+    window.addEventListener('resize', this._scrollHandler);
+    setTimeout(this.updateThumb, 50);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scroll', this._scrollHandler, true);
+    window.removeEventListener('resize', this._scrollHandler);
+  }
+
+  componentDidUpdate() {
+    setTimeout(this.updateThumb, 0);
+  }
+
+  state = {
+    searchOpen: false,
+    searchQuery: '',
+    menuOpen: false,
+    sortSubmenuOpen: false,
+    sortOrder: 'latest',
+    showSettings: false,
+    settingsLanguage: 'ko',
+    confirmDialog: null,
+    activeTab: 'home',
+    categories: [
+      { id: 'c1', name: 'Book', createdBy: 'user' },
+      { id: 'c2', name: 'Webtoon', createdBy: 'user' },
+      { id: 'c3', name: 'Drama', createdBy: 'user' },
+      { id: 'c4', name: 'Video', createdBy: 'user' },
+      { id: 'c5', name: 'Article', createdBy: 'user' },
+      { id: 'c6', name: 'Other', createdBy: 'user' },
+    ],
+    tags: [
+      { id: 't1', name: 'Finance', createdBy: 'user', lastUsedAt: 6 },
+      { id: 't2', name: 'Self-growth', createdBy: 'user', lastUsedAt: 5 },
+      { id: 't3', name: 'Wellness', createdBy: 'user', lastUsedAt: 4 },
+      { id: 't4', name: 'Dev', createdBy: 'user', lastUsedAt: 3 },
+      { id: 't5', name: 'Design', createdBy: 'user', lastUsedAt: 2 },
+      { id: 't6', name: 'Parenting', createdBy: 'user', lastUsedAt: 1 },
+    ],
+    contents: [
+      { id: 'ct1', sourceType: 'link', title: 'One Year After Quitting: My FIRE Journey', url: 'https://example.com/fire-story', summary: '', categoryId: 'c5', tagIds: ['t1', 't2'], status: 'pending' },
+      { id: 'ct2', sourceType: 'manual', title: 'One Piece Episode 1100', url: null, summary: '', categoryId: 'c2', tagIds: [], status: 'pending' },
+      { id: 'ct3', sourceType: 'link', title: 'A Practical Guide to Building Design Systems', url: 'https://example.com/design-system', summary: 'From token design to component documentation', categoryId: 'c5', tagIds: ['t5'], status: 'pending' },
+      { id: 'ct4', sourceType: 'link', title: 'Popular Finance YouTubers Right Now', url: 'https://youtube.com/watch?v=abc', summary: '', categoryId: 'c4', tagIds: ['t1'], status: 'pending' },
+      { id: 'ct5', sourceType: 'manual', title: 'Sapiens', url: null, summary: '', categoryId: 'c1', tagIds: ['t2'], status: 'done' },
+      { id: 'ct6', sourceType: 'link', title: 'A Letter from the Future (Drama)', url: 'https://example.com/drama-ep1', summary: '', categoryId: 'c3', tagIds: ['t3'], status: 'pending' },
+      { id: 'ct7', sourceType: 'link', title: 'Time Management for Developers', url: 'https://example.com/dev-time', summary: 'Comparing Pomodoro and time-blocking', categoryId: 'c5', tagIds: ['t4', 't2'], status: 'done' },
+      { id: 'ct8', sourceType: 'manual', title: 'What to Know Before Parental Leave', url: null, summary: '', categoryId: 'c5', tagIds: ['t6'], status: 'pending' },
+    ],
+    clickCounter: 6,
+    form: { title: '', url: '', summary: '', categoryId: null, tagIds: [] },
+    categoryDropdownOpen: false,
+    newCategoryInput: '',
+    tagDropdownOpen: false,
+    newTagInput: '',
+    selectedCategoryId: null,
+    selectedTagId: null,
+    tagSearchQuery: '',
+  };
+
+  findOrCreateCategory(categoriesArr, name) {
+    const trimmed = (name || '').trim();
+    if (!trimmed) return { categories: categoriesArr, id: null };
+    const existing = categoriesArr.find((c) => c.name.toLowerCase() === trimmed.toLowerCase());
+    if (existing) return { categories: categoriesArr, id: existing.id };
+    const newCat = { id: 'c_' + Date.now() + Math.random().toString(36).slice(2, 6), name: trimmed, createdBy: 'user' };
+    return { categories: [...categoriesArr, newCat], id: newCat.id };
+  }
+
+  findOrCreateTag(tagsArr, name, usage) {
+    const trimmed = (name || '').trim();
+    if (!trimmed) return { tags: tagsArr, id: null };
+    const existing = tagsArr.find((t) => t.name.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      const updated = tagsArr.map((t) => (t.id === existing.id ? { ...t, lastUsedAt: usage } : t));
+      return { tags: updated, id: existing.id };
+    }
+    const newTag = { id: 't_' + Date.now() + Math.random().toString(36).slice(2, 6), name: trimmed, createdBy: 'user', lastUsedAt: usage };
+    return { tags: [...tagsArr, newTag], id: newTag.id };
+  }
+
+  setTab = (tab) => this.setState({ activeTab: tab, categoryDropdownOpen: false, tagDropdownOpen: false });
+
+  toggleSearch = () => this.setState((prev) => ({ searchOpen: !prev.searchOpen, menuOpen: false, sortSubmenuOpen: false }));
+  closeSearch = () => this.setState({ searchOpen: false });
+  onSearchQueryChange = (e) => this.setState({ searchQuery: e.target.value });
+
+  toggleMenu = () => this.setState((prev) => ({ menuOpen: !prev.menuOpen, searchOpen: false, sortSubmenuOpen: false }));
+  closeMenu = () => this.setState({ menuOpen: false, sortSubmenuOpen: false });
+  toggleSortSubmenu = () => this.setState((prev) => ({ sortSubmenuOpen: !prev.sortSubmenuOpen }));
+  selectSort = (order) => this.setState({ sortOrder: order, sortSubmenuOpen: false, menuOpen: false });
+
+  goSettings = () => this.setState({ showSettings: true, menuOpen: false, sortSubmenuOpen: false });
+  backFromSettings = () => this.setState({ showSettings: false });
+  setLanguage = (lang) => this.setState({ settingsLanguage: lang });
+
+  openConfirm = (type) => this.setState({ confirmDialog: type });
+  closeConfirm = () => this.setState({ confirmDialog: null });
+
+  onTitleChange = (e) => this.setState((prev) => ({ form: { ...prev.form, title: e.target.value } }));
+  onUrlChange = (e) => this.setState((prev) => ({ form: { ...prev.form, url: e.target.value } }));
+  onSummaryChange = (e) => this.setState((prev) => ({ form: { ...prev.form, summary: e.target.value } }));
+  onNewCategoryChange = (e) => this.setState({ newCategoryInput: e.target.value });
+  onNewTagChange = (e) => this.setState({ newTagInput: e.target.value });
+  onTagSearchChange = (e) => this.setState({ tagSearchQuery: e.target.value });
+
+  toggleCategoryDropdown = () => this.setState((prev) => ({ categoryDropdownOpen: !prev.categoryDropdownOpen }));
+  toggleTagDropdown = () => this.setState((prev) => ({ tagDropdownOpen: !prev.tagDropdownOpen }));
+
+  selectCategory = (id) => this.setState((prev) => ({ form: { ...prev.form, categoryId: id }, categoryDropdownOpen: false }));
+
+  addNewCategory = () => {
+    this.setState((prev) => {
+      const { categories, id } = this.findOrCreateCategory(prev.categories, prev.newCategoryInput);
+      if (!id) return null;
+      return { categories, form: { ...prev.form, categoryId: id }, newCategoryInput: '', categoryDropdownOpen: false };
+    });
+  };
+
+  toggleTagInForm = (id) => {
+    this.setState((prev) => {
+      const usage = prev.clickCounter + 1;
+      const tags = prev.tags.map((t) => (t.id === id ? { ...t, lastUsedAt: usage } : t));
+      const has = prev.form.tagIds.includes(id);
+      const tagIds = has ? prev.form.tagIds.filter((x) => x !== id) : [...prev.form.tagIds, id];
+      return { tags, clickCounter: usage, form: { ...prev.form, tagIds } };
+    });
+  };
+
+  addNewTag = () => {
+    this.setState((prev) => {
+      const usage = prev.clickCounter + 1;
+      const { tags, id } = this.findOrCreateTag(prev.tags, prev.newTagInput, usage);
+      if (!id) return null;
+      const tagIds = prev.form.tagIds.includes(id) ? prev.form.tagIds : [...prev.form.tagIds, id];
+      return { tags, clickCounter: usage, form: { ...prev.form, tagIds }, newTagInput: '' };
+    });
+  };
+
+  generateAI = () => {
+    this.setState((prev) => {
+      const pools = [
+        { category: 'Article', tags: ['Self-growth', 'Wellness'], tail: 'An article summarizing the key points.' },
+        { category: 'Video', tags: ['Finance'], tail: 'A video covering the main takeaways.' },
+        { category: 'Book', tags: ['Self-growth'], tail: 'A book summarizing its core message.' },
+        { category: 'Drama', tags: ['Wellness'], tail: 'A summary of the plot and highlights.' },
+      ];
+      const seed = (prev.contents.length + prev.form.title.length) % pools.length;
+      const pick = pools[seed];
+      let title = prev.form.title.trim();
+      if (!title) {
+        title = prev.form.url ? prev.form.url.replace(/^https?:\/\//, '').split('/')[0] : 'Untitled';
+      }
+      let usage = prev.clickCounter;
+      const catRes = this.findOrCreateCategory(prev.categories, pick.category);
+      let tags = prev.tags;
+      const tagIds = [];
+      pick.tags.forEach((tn) => {
+        usage += 1;
+        const tagRes = this.findOrCreateTag(tags, tn, usage);
+        tags = tagRes.tags;
+        tagIds.push(tagRes.id);
+      });
+      const summary = title + ' — ' + pick.tail;
+      return {
+        categories: catRes.categories,
+        tags,
+        clickCounter: usage,
+        form: { ...prev.form, title, summary, categoryId: catRes.id, tagIds },
+      };
+    });
+  };
+
+  saveContent = () => {
+    this.setState((prev) => {
+      if (!prev.form.title.trim()) return null;
+      const newContent = {
+        id: 'ct_' + Date.now(),
+        sourceType: prev.form.url.trim() ? 'link' : 'manual',
+        url: prev.form.url.trim() || null,
+        title: prev.form.title.trim(),
+        summary: prev.form.summary.trim(),
+        categoryId: prev.form.categoryId,
+        tagIds: prev.form.tagIds,
+        status: 'pending',
+      };
+      return {
+        contents: [newContent, ...prev.contents],
+        form: { title: '', url: '', summary: '', categoryId: null, tagIds: [] },
+        activeTab: 'home',
+        categoryDropdownOpen: false,
+        tagDropdownOpen: false,
+      };
+    });
+  };
+
+  markDone = (id) => {
+    this.setState((prev) => ({
+      contents: prev.contents.map((c) => (c.id === id ? { ...c, status: 'done' } : c)),
+    }));
+  };
+
+  selectCategoryFilter = (id) => this.setState({ selectedCategoryId: id });
+  backFromCategory = () => this.setState({ selectedCategoryId: null });
+
+  selectTagFilter = (id) => {
+    this.setState((prev) => {
+      const usage = prev.clickCounter + 1;
+      const tags = prev.tags.map((t) => (t.id === id ? { ...t, lastUsedAt: usage } : t));
+      return { tags, clickCounter: usage, selectedTagId: id };
+    });
+  };
+  backFromTag = () => this.setState({ selectedTagId: null });
+
+  renderVals() {
+    const {
+      activeTab, categories, tags, contents, form,
+      categoryDropdownOpen, newCategoryInput, tagDropdownOpen, newTagInput,
+      selectedCategoryId, selectedTagId, tagSearchQuery,
+      searchOpen, searchQuery, menuOpen, sortSubmenuOpen, sortOrder,
+      showSettings, settingsLanguage, confirmDialog,
+    } = this.state;
+
+    const sortLabels = { latest: 'Newest', oldest: 'Oldest', alpha: 'A–Z' };
+    const confirmMeta = {
+      logout: { title: 'Log out?', body: "You'll still see all your saved content when you log back in.", actionLabel: 'Log Out', color: '#6E8C6A' },
+      delete: { title: 'Delete your account?', body: 'This permanently removes all your saved content and cannot be undone.', actionLabel: 'Delete', color: '#B15C4A' },
+    };
+    const activeConfirm = confirmDialog ? confirmMeta[confirmDialog] : null;
+
+    const catMap = {};
+    categories.forEach((c) => { catMap[c.id] = c.name; });
+    const tagMap = {};
+    tags.forEach((t) => { tagMap[t.id] = t.name; });
+
+    const enrich = (c) => ({
+      ...c,
+      categoryName: catMap[c.categoryId] || 'Uncategorized',
+      tagNames: (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean),
+      onComplete: () => this.markDone(c.id),
+    });
+
+    const pendingContents = contents.filter((c) => c.status === 'pending').map(enrich);
+    const doneContents = contents.filter((c) => c.status === 'done').map(enrich);
+
+    const categoryRows = categories.map((cat) => {
+      const count = contents.filter((c) => c.categoryId === cat.id).length;
+      return {
+        id: cat.id,
+        name: cat.name,
+        count,
+        countLabel: count + (count === 1 ? ' item' : ' items'),
+        onSelect: () => this.selectCategoryFilter(cat.id),
+      };
+    });
+    const selectedCategory = categories.find((c) => c.id === selectedCategoryId) || null;
+    const categoryFilteredContents = selectedCategoryId
+      ? contents.filter((c) => c.categoryId === selectedCategoryId).map(enrich)
+      : [];
+
+    const q = (tagSearchQuery || '').trim().toLowerCase();
+    const tagRows = tags
+      .filter((t) => !q || t.name.toLowerCase().includes(q))
+      .slice()
+      .sort((a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
+      .map((t) => {
+        const count = contents.filter((c) => (c.tagIds || []).includes(t.id)).length;
+        return {
+          id: t.id,
+          name: t.name,
+          count,
+          countLabel: count + (count === 1 ? ' item' : ' items'),
+          onSelect: () => this.selectTagFilter(t.id),
+        };
+      });
+    const selectedTag = tags.find((t) => t.id === selectedTagId) || null;
+    const tagFilteredContents = selectedTagId
+      ? contents.filter((c) => (c.tagIds || []).includes(selectedTagId)).map(enrich)
+      : [];
+
+    const formCategoryRows = categories.map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      bg: form.categoryId === cat.id ? '#6E8C6A' : '#F7F9F2',
+      fg: form.categoryId === cat.id ? '#fff' : '#3F5240',
+      onSelect: () => this.selectCategory(cat.id),
+    }));
+    const selectedCategoryLabel = form.categoryId ? (catMap[form.categoryId] || 'Selected') : 'Choose a category';
+
+    const formTagRows = tags.map((t) => ({
+      id: t.id,
+      name: t.name,
+      mark: form.tagIds.includes(t.id) ? '☑' : '☐',
+      onToggle: () => this.toggleTagInForm(t.id),
+    }));
+    const selectedFormTagChips = form.tagIds.map((id) => ({
+      id,
+      name: tagMap[id] || '',
+      onRemove: () => this.toggleTagInForm(id),
+    }));
+
+    return {
+      noop: () => {},
+      thumbRef: this.thumbRef,
+      showAppShell: !showSettings,
+
+      searchOpen,
+      searchQuery,
+      onSearchQueryChange: this.onSearchQueryChange,
+      toggleSearch: this.toggleSearch,
+      closeSearch: this.closeSearch,
+
+      menuOpen,
+      toggleMenu: this.toggleMenu,
+      closeMenu: this.closeMenu,
+      sortSubmenuOpen,
+      toggleSortSubmenu: this.toggleSortSubmenu,
+      sortCaret: sortSubmenuOpen ? '▲' : '▼',
+      sortOrderLabel: sortLabels[sortOrder],
+      selectSortLatest: () => this.selectSort('latest'),
+      selectSortOldest: () => this.selectSort('oldest'),
+      selectSortAlpha: () => this.selectSort('alpha'),
+      sortLatestColor: sortOrder === 'latest' ? '#6E8C6A' : '#3F5240',
+      sortLatestWeight: sortOrder === 'latest' ? 700 : 400,
+      sortOldestColor: sortOrder === 'oldest' ? '#6E8C6A' : '#3F5240',
+      sortOldestWeight: sortOrder === 'oldest' ? 700 : 400,
+      sortAlphaColor: sortOrder === 'alpha' ? '#6E8C6A' : '#3F5240',
+      sortAlphaWeight: sortOrder === 'alpha' ? 700 : 400,
+      goSettings: this.goSettings,
+
+      showSettings,
+      profileName: 'Alex Kim',
+      backFromSettings: this.backFromSettings,
+      setLangKo: () => this.setLanguage('ko'),
+      setLangEn: () => this.setLanguage('en'),
+      langKoBg: settingsLanguage === 'ko' ? '#6E8C6A' : '#F7F9F2',
+      langKoFg: settingsLanguage === 'ko' ? '#fff' : '#3F5240',
+      langEnBg: settingsLanguage === 'en' ? '#6E8C6A' : '#F7F9F2',
+      langEnFg: settingsLanguage === 'en' ? '#fff' : '#3F5240',
+      openLogoutConfirm: () => this.openConfirm('logout'),
+      openDeleteConfirm: () => this.openConfirm('delete'),
+
+      confirmDialog: !!confirmDialog,
+      confirmTitle: activeConfirm ? activeConfirm.title : '',
+      confirmBody: activeConfirm ? activeConfirm.body : '',
+      confirmActionLabel: activeConfirm ? activeConfirm.actionLabel : '',
+      confirmColor: activeConfirm ? activeConfirm.color : '#6E8C6A',
+      closeConfirm: this.closeConfirm,
+      confirmAction: this.closeConfirm,
+      isHome: activeTab === 'home',
+      isCategory: activeTab === 'category',
+      isAdd: activeTab === 'add',
+      isTags: activeTab === 'tags',
+      isDone: activeTab === 'done',
+      setTabHome: () => this.setTab('home'),
+      setTabCategory: () => this.setTab('category'),
+      setTabAdd: () => this.setTab('add'),
+      setTabTags: () => this.setTab('tags'),
+      setTabDone: () => this.setTab('done'),
+
+      homeIconBg: activeTab === 'home' ? '#6E8C6A' : 'rgba(63,82,64,0.25)',
+      homeFontWeight: activeTab === 'home' ? 700 : 400,
+      homeColor: activeTab === 'home' ? '#6E8C6A' : '#3F5240',
+      categoryIconBg: activeTab === 'category' ? '#6E8C6A' : 'rgba(63,82,64,0.25)',
+      categoryFontWeight: activeTab === 'category' ? 700 : 400,
+      categoryColor: activeTab === 'category' ? '#6E8C6A' : '#3F5240',
+      addIconBg: activeTab === 'add' ? '#6E8C6A' : 'rgba(63,82,64,0.25)',
+      addFontWeight: activeTab === 'add' ? 700 : 400,
+      addColor: activeTab === 'add' ? '#6E8C6A' : '#3F5240',
+      tagsIconBg: activeTab === 'tags' ? '#6E8C6A' : 'rgba(63,82,64,0.25)',
+      tagsFontWeight: activeTab === 'tags' ? 700 : 400,
+      tagsColor: activeTab === 'tags' ? '#6E8C6A' : '#3F5240',
+      doneIconBg: activeTab === 'done' ? '#6E8C6A' : 'rgba(63,82,64,0.25)',
+      doneFontWeight: activeTab === 'done' ? 700 : 400,
+      doneColor: activeTab === 'done' ? '#6E8C6A' : '#3F5240',
+
+      pendingContents,
+      pendingCount: pendingContents.length,
+      isHomeEmpty: pendingContents.length === 0,
+      doneContents,
+      doneCount: doneContents.length,
+      isDoneEmpty: doneContents.length === 0,
+
+      categoryRows,
+      hasSelectedCategory: !!selectedCategory,
+      categoryListView: !selectedCategory,
+      selectedCategoryName: selectedCategory ? selectedCategory.name : '',
+      categoryFilteredContents,
+      isCategoryFilteredEmpty: categoryFilteredContents.length === 0,
+      backFromCategory: this.backFromCategory,
+
+      tagSearchQuery,
+      onTagSearchChange: this.onTagSearchChange,
+      tagRows,
+      hasSelectedTag: !!selectedTag,
+      tagListView: !selectedTag,
+      selectedTagName: selectedTag ? selectedTag.name : '',
+      tagFilteredContents,
+      isTagFilteredEmpty: tagFilteredContents.length === 0,
+      backFromTag: this.backFromTag,
+
+      formTitle: form.title,
+      formUrl: form.url,
+      formSummary: form.summary,
+      onTitleChange: this.onTitleChange,
+      onUrlChange: this.onUrlChange,
+      onSummaryChange: this.onSummaryChange,
+
+      categoryDropdownOpen,
+      categoryDropdownClosed: !categoryDropdownOpen,
+      toggleCategoryDropdown: this.toggleCategoryDropdown,
+      selectedCategoryLabel,
+      formCategoryRows,
+      newCategoryInput,
+      onNewCategoryChange: this.onNewCategoryChange,
+      addNewCategory: this.addNewCategory,
+
+      tagDropdownOpen,
+      toggleTagDropdown: this.toggleTagDropdown,
+      selectedFormTagChips,
+      hasFormTags: selectedFormTagChips.length > 0,
+      formTagRows,
+      newTagInput,
+      onNewTagChange: this.onNewTagChange,
+      addNewTag: this.addNewTag,
+
+      generateAI: this.generateAI,
+      saveContent: this.saveContent,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
