@@ -1,0 +1,37 @@
+import { PhoneFrame } from '../components/PhoneFrame';
+
+interface CoverScreenProps {
+  onEnter: () => void;
+}
+
+export function CoverScreen({ onEnter }: CoverScreenProps) {
+  return (
+    <PhoneFrame background="#E6F1E3">
+      <button
+        type="button"
+        onClick={onEnter}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 0,
+          textDecoration: 'none',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          padding: 0,
+        }}
+      >
+        <img src="/assets/logo-book.png" alt="" style={{ width: 190, height: 190, objectFit: 'contain' }} />
+        <img
+          src="/assets/logo-wordmark.png"
+          alt="Later Island"
+          style={{ width: 220, objectFit: 'contain', marginTop: -14 }}
+        />
+      </button>
+    </PhoneFrame>
+  );
+}

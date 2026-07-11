@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  margin: 0;
+  background: #e6f1e3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+input,
+textarea,
+button {
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #3f5240;
+  opacity: 0.45;
+}

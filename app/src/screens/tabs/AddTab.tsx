@@ -1,0 +1,356 @@
+import type { ContentForm } from '../../types';
+
+interface FormCategoryRow {
+  id: string;
+  name: string;
+  bg: string;
+  fg: string;
+  onSelect: () => void;
+}
+
+interface FormTagRow {
+  id: string;
+  name: string;
+  mark: string;
+  onToggle: () => void;
+}
+
+interface FormTagChip {
+  id: string;
+  name: string;
+  onRemove: () => void;
+}
+
+interface AddTabProps {
+  form: ContentForm;
+  setFormTitle: (v: string) => void;
+  setFormUrl: (v: string) => void;
+  setFormSummary: (v: string) => void;
+
+  categoryDropdownOpen: boolean;
+  toggleCategoryDropdown: () => void;
+  selectedCategoryLabel: string;
+  formCategoryRows: FormCategoryRow[];
+  newCategoryInput: string;
+  setNewCategoryInput: (v: string) => void;
+  addNewCategory: () => void;
+
+  tagDropdownOpen: boolean;
+  toggleTagDropdown: () => void;
+  selectedFormTagChips: FormTagChip[];
+  formTagRows: FormTagRow[];
+  newTagInput: string;
+  setNewTagInput: (v: string) => void;
+  addNewTag: () => void;
+
+  generateAI: () => void;
+  saveContent: () => void;
+}
+
+const inputStyle = {
+  width: '100%',
+  boxSizing: 'border-box' as const,
+  border: '1px solid rgba(63,82,64,0.3)',
+  borderRadius: 10,
+  padding: 12,
+  fontSize: 14,
+  fontFamily: 'inherit',
+  background: '#F7F9F2',
+  color: '#3F5240',
+};
+
+const labelStyle = { display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 };
+
+export function AddTab({
+  form,
+  setFormTitle,
+  setFormUrl,
+  setFormSummary,
+  categoryDropdownOpen,
+  toggleCategoryDropdown,
+  selectedCategoryLabel,
+  formCategoryRows,
+  newCategoryInput,
+  setNewCategoryInput,
+  addNewCategory,
+  tagDropdownOpen,
+  toggleTagDropdown,
+  selectedFormTagChips,
+  formTagRows,
+  newTagInput,
+  setNewTagInput,
+  addNewTag,
+  generateAI,
+  saveContent,
+}: AddTabProps) {
+  return (
+    <div data-screen-label="콘텐츠 추가">
+      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div>
+          <label style={labelStyle}>제목 *</label>
+          <input
+            value={form.title}
+            onChange={(e) => setFormTitle(e.target.value)}
+            placeholder="제목을 입력하세요"
+            style={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>링크 (선택)</label>
+          <input
+            value={form.url}
+            onChange={(e) => setFormUrl(e.target.value)}
+            placeholder="https://..."
+            style={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>요약 (선택)</label>
+          <textarea
+            value={form.summary}
+            onChange={(e) => setFormSummary(e.target.value)}
+            placeholder="나중에 참고할 요약을 남겨보세요"
+            rows={3}
+            style={{ ...inputStyle, resize: 'none' }}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>카테고리 (형식)</label>
+          <div
+            onClick={toggleCategoryDropdown}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              border: '1px solid rgba(63,82,64,0.3)',
+              borderRadius: 10,
+              padding: 12,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>{selectedCategoryLabel}</span>
+            <span>{categoryDropdownOpen ? '▲' : '▼'}</span>
+          </div>
+          {categoryDropdownOpen && (
+            <div
+              style={{
+                border: '1px solid rgba(63,82,64,0.3)',
+                borderTop: 'none',
+                borderRadius: '0 0 10px 10px',
+                padding: 12,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              {formCategoryRows.map((cat) => (
+                <div
+                  key={cat.id}
+                  onClick={cat.onSelect}
+                  style={{
+                    padding: 10,
+                    border: '1px solid rgba(63,82,64,0.25)',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    background: cat.bg,
+                    color: cat.fg,
+                  }}
+                >
+                  {cat.name}
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <input
+                  value={newCategoryInput}
+                  onChange={(e) => setNewCategoryInput(e.target.value)}
+                  placeholder="+ 새 카테고리"
+                  style={{
+                    flex: 1,
+                    boxSizing: 'border-box',
+                    border: '1px solid rgba(63,82,64,0.3)',
+                    borderRadius: 8,
+                    padding: 10,
+                    fontSize: 13,
+                    fontFamily: 'inherit',
+                    background: '#F7F9F2',
+                    color: '#3F5240',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addNewCategory}
+                  style={{
+                    border: '1px solid #6E8C6A',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    background: '#6E8C6A',
+                    color: '#fff',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  추가
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label style={labelStyle}>태그 (주제)</label>
+          {selectedFormTagChips.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+              {selectedFormTagChips.map((chip) => (
+                <div
+                  key={chip.id}
+                  onClick={chip.onRemove}
+                  style={{
+                    border: '1px solid rgba(156,181,177,0.6)',
+                    background: 'rgba(156,181,177,0.25)',
+                    borderRadius: 20,
+                    color: '#3F5240',
+                    padding: '5px 12px',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  #{chip.name} <span>×</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div
+            onClick={toggleTagDropdown}
+            style={{
+              border: '1px solid rgba(63,82,64,0.3)',
+              borderRadius: 10,
+              padding: 12,
+              textAlign: 'center',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            태그 선택 / 추가
+          </div>
+          {tagDropdownOpen && (
+            <div
+              style={{
+                border: '1px solid rgba(63,82,64,0.3)',
+                borderTop: 'none',
+                borderRadius: '0 0 10px 10px',
+                padding: 12,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                maxHeight: 200,
+                overflowY: 'auto',
+              }}
+            >
+              {formTagRows.map((tag) => (
+                <div
+                  key={tag.id}
+                  onClick={tag.onToggle}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: 10,
+                    border: '1px solid rgba(63,82,64,0.25)',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span>#{tag.name}</span>
+                  <span>{tag.mark}</span>
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <input
+                  value={newTagInput}
+                  onChange={(e) => setNewTagInput(e.target.value)}
+                  placeholder="+ 새 태그"
+                  style={{
+                    flex: 1,
+                    boxSizing: 'border-box',
+                    border: '1px solid rgba(63,82,64,0.3)',
+                    borderRadius: 8,
+                    padding: 10,
+                    fontSize: 13,
+                    fontFamily: 'inherit',
+                    background: '#F7F9F2',
+                    color: '#3F5240',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addNewTag}
+                  style={{
+                    border: '1px solid #6E8C6A',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    background: '#6E8C6A',
+                    color: '#fff',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  추가
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={generateAI}
+          style={{
+            width: '100%',
+            border: '1px solid #6E8C6A',
+            borderRadius: 10,
+            padding: 14,
+            background: '#F7F9F2',
+            color: '#6E8C6A',
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          ✦ AI 자동생성
+        </button>
+
+        <button
+          type="button"
+          onClick={saveContent}
+          style={{
+            width: '100%',
+            border: '1px solid #6E8C6A',
+            borderRadius: 10,
+            padding: 14,
+            background: '#6E8C6A',
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          저장
+        </button>
+      </div>
+    </div>
+  );
+}
