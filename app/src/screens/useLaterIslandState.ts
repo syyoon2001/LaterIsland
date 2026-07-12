@@ -111,6 +111,63 @@ export function useLaterIslandState() {
   }, []);
 
   useEffect(() => {
+    const handleClearAll = () => {
+      setCategories([]);
+      setTags([]);
+      setContents([]);
+      setTrashContents([]);
+    };
+    window.addEventListener('simulation-clear-all', handleClearAll);
+    return () => window.removeEventListener('simulation-clear-all', handleClearAll);
+  }, []);
+
+  useEffect(() => {
+    const handleGenerateDummy = () => {
+      const titles = ['React 19 Deep Dive', 'Weekend Vlog', 'Clean Code Practices', 'Best Design Systems', 'My Finance Journey'];
+      const summaries = ['A great article on React', 'Relaxing weekend trip', 'How to write better code', 'Analysis of top design systems', 'Tips for saving money'];
+      const catNames = ['Dev', 'Life', 'Dev', 'Design', 'Finance'];
+      const tagNamess = [['Frontend', 'React'], ['Vlog'], ['CleanCode'], ['Design'], ['Finance', 'Tips']];
+      
+      setCategories((prevCats) => {
+        let currentCats = [...prevCats];
+        setTags((prevTags) => {
+          let currentTags = [...prevTags];
+          const newItems: ContentItem[] = [];
+          
+          for (let i = 0; i < 5; i++) {
+             const { categories: nextCats, id: cId } = findOrCreateCategory(currentCats, catNames[i]);
+             currentCats = nextCats;
+             
+             const tIds: string[] = [];
+             for (const tName of tagNamess[i]) {
+                const { tags: nextTags, id: tId } = findOrCreateTag(currentTags, tName, Date.now() + i);
+                currentTags = nextTags;
+                if (tId) tIds.push(tId);
+             }
+             
+             newItems.push({
+               id: 'dummy_' + Date.now() + Math.random().toString(36).slice(2, 6),
+               sourceType: 'manual',
+               title: titles[i],
+               url: 'https://example.com/dummy' + i,
+               summary: summaries[i],
+               categoryId: cId,
+               tagIds: tIds,
+               status: 'pending'
+             });
+          }
+          
+          setContents((prevC) => [...newItems, ...prevC]);
+          return currentTags;
+        });
+        return currentCats;
+      });
+    };
+    window.addEventListener('simulation-generate-dummy', handleGenerateDummy);
+    return () => window.removeEventListener('simulation-generate-dummy', handleGenerateDummy);
+  }, []);
+
+  useEffect(() => {
     window.dispatchEvent(
       new CustomEvent('simulation-sync', {
         detail: {

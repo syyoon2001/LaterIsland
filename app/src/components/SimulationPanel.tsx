@@ -164,6 +164,51 @@ export function SimulationPanel() {
               );
             })}
           </div>
+
+          <hr style={{ margin: '32px 0 16px 0', border: 'none', borderTop: '1px solid rgba(63, 82, 64, 0.1)' }} />
+          <h2 style={{ fontSize: 16, fontWeight: 'bold', color: '#3F5240', margin: '0 0 12px 0' }}>
+            테스트 도구
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('simulation-generate-dummy'))}
+              style={{
+                padding: '10px 16px',
+                borderRadius: 8,
+                border: '1px solid #6E8C6A',
+                background: '#F7F9F2',
+                color: '#6E8C6A',
+                textAlign: 'center',
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 600,
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(110, 140, 106, 0.1)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#F7F9F2')}
+            >
+              무작위 항목 5개 생성
+            </button>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('simulation-clear-all'))}
+              style={{
+                padding: '10px 16px',
+                borderRadius: 8,
+                border: '1px solid #B15C4A',
+                background: '#F7F9F2',
+                color: '#B15C4A',
+                textAlign: 'center',
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 600,
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(177, 92, 74, 0.1)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#F7F9F2')}
+            >
+              전체 항목 삭제
+            </button>
+          </div>
         </div>
       </div>
     </>
