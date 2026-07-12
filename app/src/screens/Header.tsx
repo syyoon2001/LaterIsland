@@ -176,7 +176,7 @@ export function Header({
               style={{ ...menuRowStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 'auto', height: 'auto' }}
             >
               <span>
-                {t.sortBy} <span style={{ opacity: 0.5, fontWeight: 400 }}>· {sortOrderLabel}</span>
+                {t.sortBy} {sortSubmenuOpen && <span style={{ opacity: 0.5, fontWeight: 400 }}>· {sortOrderLabel}</span>}
               </span>
               <span style={{ fontSize: 11 }}>{sortSubmenuOpen ? '▲' : '▼'}</span>
             </div>
