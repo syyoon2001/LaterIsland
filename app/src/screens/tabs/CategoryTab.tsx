@@ -69,7 +69,7 @@ export function CategoryTab({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12,
+                  gap: 6,
                   padding: '16px 4px',
                   borderBottom: '1px solid rgba(63,82,64,0.12)',
                   cursor: editingCategoryId === cat.id ? 'default' : 'pointer',
@@ -81,8 +81,8 @@ export function CategoryTab({
                     type="button"
                     onClick={() => setKebabOpenId(kebabOpenId === cat.id ? null : cat.id)}
                     style={{
-                      width: 24,
-                      height: 24,
+                      width: 18,
+                      height: 18,
                       border: 'none',
                       background: 'transparent',
                       padding: 0,
@@ -94,8 +94,8 @@ export function CategoryTab({
                     }}
                   >
                     <svg
-                      width="16"
-                      height="16"
+                      width="13"
+                      height="13"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="#3F5240"
@@ -118,7 +118,7 @@ export function CategoryTab({
                       <div
                         style={{
                           position: 'absolute',
-                          top: 24,
+                          top: 20,
                           left: 0,
                           zIndex: 11,
                           background: '#F7F9F2',
@@ -211,6 +211,7 @@ export function CategoryTab({
                         padding: '2px 6px',
                         fontFamily: 'inherit',
                         color: '#3F5240',
+                        background: '#F7F9F2',
                         width: '80%',
                       }}
                     />

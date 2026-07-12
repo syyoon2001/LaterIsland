@@ -51,7 +51,7 @@ export default function App() {
   return (
     <>
       {content}
-      <SimulationPanel />
+      {import.meta.env.DEV && <SimulationPanel />}
     </>
   );
 }

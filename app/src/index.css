@@ -11,10 +11,28 @@
 body {
   margin: 0;
   background: #e6f1e3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+}
+
+/* Mobile web app container: fills the real device viewport by default,
+   and on wider (desktop) viewports is capped to a phone-like column
+   and centered, per standard mobile-web-app patterns. */
+.phone-frame {
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+}
+
+@media (min-width: 481px) {
+  .phone-frame {
+    border: 1px solid rgba(63, 82, 64, 0.15);
+    border-radius: 28px;
+    box-shadow: 0 8px 30px rgba(63, 82, 64, 0.12);
+  }
 }
 
 input,

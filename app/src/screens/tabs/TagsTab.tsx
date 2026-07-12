@@ -70,7 +70,7 @@ export function TagsTab({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12,
+                  gap: 6,
                   padding: '16px 4px',
                   borderBottom: '1px solid rgba(63,82,64,0.12)',
                   cursor: editingTagId === tag.id ? 'default' : 'pointer',
@@ -82,8 +82,8 @@ export function TagsTab({
                     type="button"
                     onClick={() => setKebabOpenId(kebabOpenId === tag.id ? null : tag.id)}
                     style={{
-                      width: 24,
-                      height: 24,
+                      width: 18,
+                      height: 18,
                       border: 'none',
                       background: 'transparent',
                       padding: 0,
@@ -95,8 +95,8 @@ export function TagsTab({
                     }}
                   >
                     <svg
-                      width="16"
-                      height="16"
+                      width="13"
+                      height="13"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="#3F5240"
@@ -119,7 +119,7 @@ export function TagsTab({
                       <div
                         style={{
                           position: 'absolute',
-                          top: 24,
+                          top: 20,
                           left: 0,
                           zIndex: 11,
                           background: '#F7F9F2',
@@ -212,6 +212,7 @@ export function TagsTab({
                         padding: '2px 6px',
                         fontFamily: 'inherit',
                         color: '#3F5240',
+                        background: '#F7F9F2',
                         width: '80%',
                       }}
                     />
