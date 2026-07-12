@@ -47,6 +47,8 @@ interface AddTabProps {
   generateAI: () => void;
   saveContent: () => void;
   language: Language;
+  isEditing?: boolean;
+  onCancelEdit?: () => void;
 }
 
 const inputStyle = {
@@ -85,11 +87,16 @@ export function AddTab({
   generateAI,
   saveContent,
   language,
+  isEditing = false,
+  onCancelEdit,
 }: AddTabProps) {
   const t = translations[language];
+  const pageTitle = isEditing
+    ? (language === 'ko' ? '콘텐츠 수정' : 'Edit Content')
+    : (language === 'ko' ? '콘텐츠 추가' : 'Add Content');
 
   return (
-    <div data-screen-label={language === 'ko' ? '콘텐츠 추가' : 'Add Content'}>
+    <div data-screen-label={pageTitle}>
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
           <label style={labelStyle}>{t.formTitleLabel}</label>
@@ -318,43 +325,67 @@ export function AddTab({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={generateAI}
-          style={{
-            width: '100%',
-            border: '1px solid #6E8C6A',
-            borderRadius: 10,
-            padding: 14,
-            background: '#F7F9F2',
-            color: '#6E8C6A',
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
-        >
-          {t.formAiAutofill}
-        </button>
+        {!isEditing && (
+          <button
+            type="button"
+            onClick={generateAI}
+            style={{
+              width: '100%',
+              border: '1px solid #6E8C6A',
+              borderRadius: 10,
+              padding: 14,
+              background: '#F7F9F2',
+              color: '#6E8C6A',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            {t.formAiAutofill}
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={saveContent}
-          style={{
-            width: '100%',
-            border: '1px solid #6E8C6A',
-            borderRadius: 10,
-            padding: 14,
-            background: '#6E8C6A',
-            color: '#fff',
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
-        >
-          {t.formSave}
-        </button>
+        <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+          {isEditing && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              style={{
+                flex: 1,
+                border: '1px solid rgba(63,82,64,0.3)',
+                borderRadius: 10,
+                padding: 14,
+                background: '#fff',
+                color: '#3F5240',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {language === 'ko' ? '취소' : 'Cancel'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={saveContent}
+            style={{
+              flex: 1,
+              border: '1px solid #6E8C6A',
+              borderRadius: 10,
+              padding: 14,
+              background: '#6E8C6A',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            {t.formSave}
+          </button>
+        </div>
       </div>
     </div>
   );

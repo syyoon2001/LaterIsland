@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import styles from './ContentCard.module.css';
 import type { Language } from '../types';
 
@@ -14,25 +14,12 @@ export interface ContentCardProps {
   onComplete?: (() => void) | null;
   language?: Language;
 
-  // New Edit props
-  isEditMode?: boolean;
-  selected?: boolean;
-  onToggleSelect?: () => void;
-  onUpdateContent?: (fields: { title?: string; summary?: string; url?: string; tagNames?: string[] }) => void;
-  onRestore?: (() => void) | null;
+  // Kebab actions
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onRestore?: () => void;
+  onDeletePermanently?: () => void;
 }
-
-const editInputStyle = {
-  fontSize: 'inherit',
-  fontFamily: 'inherit',
-  color: '#3F5240',
-  background: '#fff',
-  border: '1px solid #6E8C6A',
-  borderRadius: 4,
-  padding: '4px 6px',
-  width: '100%',
-  boxSizing: 'border-box' as const,
-};
 
 export function ContentCard({
   title,
@@ -43,40 +30,18 @@ export function ContentCard({
   status = 'pending',
   onComplete = null,
   language = 'ko',
-  isEditMode = false,
-  selected = false,
-  onToggleSelect,
-  onUpdateContent,
-  onRestore = null,
+  onEdit,
+  onDelete,
+  onRestore,
+  onDeletePermanently,
 }: ContentCardProps) {
   const hasSummary = !!summary;
   const hasUrl = !!url;
-  const showComplete = status === 'pending' && !!onComplete && !isEditMode;
+  const showComplete = status === 'pending' && !!onComplete;
   const isDone = status === 'done';
   const resolvedCategoryName = categoryName || (language === 'ko' ? '기타' : 'Other');
 
-  // Inline edit states
-  const [editingField, setEditingField] = useState<'title' | 'summary' | 'url' | 'tags' | null>(null);
-  const [tempTitle, setTempTitle] = useState(title);
-  const [tempSummary, setTempSummary] = useState(summary);
-  const [tempUrl, setTempUrl] = useState(url);
-  const [tempTags, setTempTags] = useState('');
-
-  useEffect(() => {
-    setTempTitle(title);
-  }, [title]);
-
-  useEffect(() => {
-    setTempSummary(summary);
-  }, [summary]);
-
-  useEffect(() => {
-    setTempUrl(url);
-  }, [url]);
-
-  useEffect(() => {
-    setTempTags(tagNames.map((t) => `#${t}`).join(' '));
-  }, [tagNames]);
+  const [kebabOpen, setKebabOpen] = useState(false);
 
   const handleCopy = useCallback(() => {
     if (url) {
@@ -84,68 +49,12 @@ export function ContentCard({
     }
   }, [url]);
 
-  const saveTitle = () => {
-    if (tempTitle.trim() && tempTitle.trim() !== title) {
-      onUpdateContent?.({ title: tempTitle.trim() });
-    }
-    setEditingField(null);
-  };
-
-  const saveSummary = () => {
-    if (tempSummary.trim() !== summary) {
-      onUpdateContent?.({ summary: tempSummary.trim() });
-    }
-    setEditingField(null);
-  };
-
-  const saveUrl = () => {
-    if (tempUrl.trim() !== url) {
-      onUpdateContent?.({ url: tempUrl.trim() });
-    }
-    setEditingField(null);
-  };
-
-  const saveTags = () => {
-    const parsed = tempTags
-      .split(/[\s,]+/)
-      .map((t) => t.replace(/^#/, '').trim())
-      .filter(Boolean);
-    onUpdateContent?.({ tagNames: parsed });
-    setEditingField(null);
-  };
-
   return (
     <div className={styles.card}>
       <div className={styles.headerRow}>
         <div style={{ flex: 1 }}>
-          {isEditMode && editingField === 'title' ? (
-            <input
-              value={tempTitle}
-              onChange={(e) => setTempTitle(e.target.value)}
-              onBlur={saveTitle}
-              onKeyDown={(e) => e.key === 'Enter' && saveTitle()}
-              autoFocus
-              style={editInputStyle}
-            />
-          ) : (
-            <div
-              className={styles.title}
-              style={isEditMode ? { cursor: 'pointer', borderBottom: '1px dashed #6E8C6A' } : undefined}
-              onClick={isEditMode ? () => setEditingField('title') : undefined}
-            >
-              {title}
-            </div>
-          )}
+          <div className={styles.title}>{title}</div>
         </div>
-
-        {isEditMode && (
-          <input
-            type="checkbox"
-            checked={selected}
-            onChange={onToggleSelect}
-            className={styles.roundCheckbox}
-          />
-        )}
 
         {showComplete && (
           <button
@@ -157,91 +66,23 @@ export function ContentCard({
           </button>
         )}
         {isDone && <div className={styles.doneBadge}>{language === 'ko' ? '완료됨' : 'Done'}</div>}
-        {status === 'trash' && !isEditMode && onRestore && (
-          <button
-            type="button"
-            onClick={onRestore}
-            className={styles.restoreButton}
-          >
-            {language === 'ko' ? '복구' : 'Restore'}
-          </button>
-        )}
       </div>
 
-      {isEditMode && editingField === 'tags' ? (
-        <div style={{ marginTop: 8 }}>
-          <input
-            value={tempTags}
-            onChange={(e) => setTempTags(e.target.value)}
-            onBlur={saveTags}
-            onKeyDown={(e) => e.key === 'Enter' && saveTags()}
-            autoFocus
-            placeholder={language === 'ko' ? '태그 입력 (예: #힐링 #재테크)' : 'Enter tags (e.g. #Wellness #Finance)'}
-            style={editInputStyle}
-          />
-        </div>
-      ) : (
-        <div
-          className={styles.chipsRow}
-          style={isEditMode ? { cursor: 'pointer', borderBottom: '1px dashed #6E8C6A', minHeight: 24, marginTop: 8 } : undefined}
-          onClick={isEditMode ? () => setEditingField('tags') : undefined}
-        >
-          <div className={styles.categoryChip}>{resolvedCategoryName}</div>
-          {tagNames.map((tagName) => (
-            <div key={tagName} className={styles.tagChip}>
-              #{tagName}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className={styles.chipsRow}>
+        <div className={styles.categoryChip}>{resolvedCategoryName}</div>
+        {tagNames.map((tagName) => (
+          <div key={tagName} className={styles.tagChip}>
+            #{tagName}
+          </div>
+        ))}
+      </div>
 
-      {isEditMode && editingField === 'summary' ? (
-        <div style={{ marginTop: 8 }}>
-          <textarea
-            value={tempSummary}
-            onChange={(e) => setTempSummary(e.target.value)}
-            onBlur={saveSummary}
-            onKeyDown={(e) => e.key === 'Enter' && saveSummary()}
-            autoFocus
-            rows={2}
-            style={{ ...editInputStyle, resize: 'none' }}
-          />
-        </div>
-      ) : isEditMode ? (
-        <div
-          className={styles.summary}
-          style={{ cursor: 'pointer', borderBottom: '1px dashed #6E8C6A', minHeight: 18, color: summary ? undefined : '#aaa', marginTop: 8 }}
-          onClick={() => setEditingField('summary')}
-        >
-          {summary || (language === 'ko' ? '(요약 입력)' : '(Enter summary)')}
-        </div>
-      ) : (
-        hasSummary && <div className={styles.summary}>{summary}</div>
-      )}
+      {hasSummary && <div className={styles.summary}>{summary}</div>}
 
-      {isEditMode && editingField === 'url' ? (
-        <div style={{ marginTop: 8 }}>
-          <input
-            value={tempUrl}
-            onChange={(e) => setTempUrl(e.target.value)}
-            onBlur={saveUrl}
-            onKeyDown={(e) => e.key === 'Enter' && saveUrl()}
-            autoFocus
-            style={editInputStyle}
-          />
-        </div>
-      ) : isEditMode ? (
-        <div className={styles.linkRow} style={{ marginTop: 8 }}>
-          <span
-            style={{ cursor: 'pointer', borderBottom: '1px dashed #6E8C6A', fontSize: 13, color: '#6E8C6A' }}
-            onClick={() => setEditingField('url')}
-          >
-            {url || (language === 'ko' ? '(링크 입력)' : '(Enter link)')}
-          </span>
-        </div>
-      ) : (
-        hasUrl && (
-          <div className={styles.linkRow}>
+      {/* Bottom Row with Link and Kebab Menu */}
+      <div className={styles.linkRow} style={{ justifyContent: 'space-between', alignItems: 'center', position: 'relative', marginTop: 12 }}>
+        {hasUrl ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <a href={url} target="_blank" rel="noopener" className={styles.link}>
               {language === 'ko' ? '바로가기 ↗' : 'View Link ↗'}
             </a>
@@ -266,10 +107,115 @@ export function ContentCard({
               </svg>
             </button>
           </div>
-        )
-      )}
+        ) : (
+          <div />
+        )}
+
+        {/* Kebab menu on the bottom right */}
+        <div style={{ position: 'relative' }}>
+          <button
+            type="button"
+            onClick={() => setKebabOpen(!kebabOpen)}
+            style={{
+              border: 'none',
+              background: 'transparent',
+              padding: 4,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 6,
+            }}
+            className={styles.kebabTrigger}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#3F5240"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="1.25"></circle>
+              <circle cx="12" cy="5" r="1.25"></circle>
+              <circle cx="12" cy="19" r="1.25"></circle>
+            </svg>
+          </button>
+
+          {kebabOpen && (
+            <>
+              <div
+                onClick={() => setKebabOpen(false)}
+                style={{ position: 'fixed', inset: 0, zIndex: 10 }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 28,
+                  right: 0,
+                  zIndex: 11,
+                  background: '#F7F9F2',
+                  border: '1px solid rgba(63,82,64,0.15)',
+                  borderRadius: 8,
+                  boxShadow: '0 4px 12px rgba(63,82,64,0.15)',
+                  padding: 4,
+                  minWidth: 100,
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                {status === 'trash' ? (
+                  <>
+                    <div
+                      onClick={() => {
+                        onRestore?.();
+                        setKebabOpen(false);
+                      }}
+                      className={styles.kebabItem}
+                    >
+                      {language === 'ko' ? '복구' : 'Restore'}
+                    </div>
+                    <div
+                      onClick={() => {
+                        onDeletePermanently?.();
+                        setKebabOpen(false);
+                      }}
+                      className={styles.kebabItem}
+                      style={{ color: '#B15C4A' }}
+                    >
+                      {language === 'ko' ? '영구 삭제' : 'Delete Permanently'}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      onClick={() => {
+                        onEdit?.();
+                        setKebabOpen(false);
+                      }}
+                      className={styles.kebabItem}
+                    >
+                      {language === 'ko' ? '편집' : 'Edit'}
+                    </div>
+                    <div
+                      onClick={() => {
+                        onDelete?.();
+                        setKebabOpen(false);
+                      }}
+                      className={styles.kebabItem}
+                      style={{ color: '#B15C4A' }}
+                    >
+                      {language === 'ko' ? '삭제' : 'Delete'}
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
-
-

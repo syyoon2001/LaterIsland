@@ -37,8 +37,6 @@ export function LaterIslandApp() {
             selectSort={s.selectSort}
             goSettings={s.goSettings}
             language={s.settingsLanguage}
-            isEditMode={s.isEditMode}
-            setIsEditMode={s.setIsEditMode}
             setShowTrash={s.setShowTrash}
           />
 
@@ -47,12 +45,8 @@ export function LaterIslandApp() {
               <HomeTab
                 pendingContents={s.pendingContents}
                 language={s.settingsLanguage}
-                isEditMode={s.isEditMode}
-                selectedContentIds={s.selectedContentIds}
-                setSelectedContentIds={s.setSelectedContentIds}
-                onDeleteSelected={(ids) => s.openConfirmDeleteSelected(ids, false)}
-                onExitEditMode={() => s.setIsEditMode(false)}
-                onUpdateContent={s.updateContentItem}
+                onEditItem={s.startEditContent}
+                onDeleteItem={s.openConfirmDeleteContent}
               />
             )}
             {s.activeTab === 'category' && (
@@ -62,12 +56,8 @@ export function LaterIslandApp() {
                 categoryFilteredContents={s.categoryFilteredContents}
                 backFromCategory={s.backFromCategory}
                 language={s.settingsLanguage}
-                isEditMode={s.isEditMode}
-                selectedContentIds={s.selectedContentIds}
-                setSelectedContentIds={s.setSelectedContentIds}
-                onDeleteSelected={(ids) => s.openConfirmDeleteSelected(ids, false)}
-                onExitEditMode={() => s.setIsEditMode(false)}
-                onUpdateContent={s.updateContentItem}
+                onEditItem={s.startEditContent}
+                onDeleteItem={s.openConfirmDeleteContent}
                 onUpdateCategoryName={s.updateCategoryName}
                 onDeleteCategory={s.openConfirmDeleteCategory}
               />
@@ -95,6 +85,8 @@ export function LaterIslandApp() {
                 generateAI={s.generateAI}
                 saveContent={s.saveContent}
                 language={s.settingsLanguage}
+                isEditing={!!s.editingContentId}
+                onCancelEdit={s.cancelEditContent}
               />
             )}
             {s.activeTab === 'tags' && (
@@ -104,12 +96,8 @@ export function LaterIslandApp() {
                 tagFilteredContents={s.tagFilteredContents}
                 backFromTag={s.backFromTag}
                 language={s.settingsLanguage}
-                isEditMode={s.isEditMode}
-                selectedContentIds={s.selectedContentIds}
-                setSelectedContentIds={s.setSelectedContentIds}
-                onDeleteSelected={(ids) => s.openConfirmDeleteSelected(ids, false)}
-                onExitEditMode={() => s.setIsEditMode(false)}
-                onUpdateContent={s.updateContentItem}
+                onEditItem={s.startEditContent}
+                onDeleteItem={s.openConfirmDeleteContent}
                 onUpdateTagName={s.updateTagName}
                 onDeleteTag={s.openConfirmDeleteTag}
               />
@@ -118,12 +106,8 @@ export function LaterIslandApp() {
               <DoneTab
                 doneContents={s.doneContents}
                 language={s.settingsLanguage}
-                isEditMode={s.isEditMode}
-                selectedContentIds={s.selectedContentIds}
-                setSelectedContentIds={s.setSelectedContentIds}
-                onDeleteSelected={(ids) => s.openConfirmDeleteSelected(ids, false)}
-                onExitEditMode={() => s.setIsEditMode(false)}
-                onUpdateContent={s.updateContentItem}
+                onEditItem={s.startEditContent}
+                onDeleteItem={s.openConfirmDeleteContent}
               />
             )}
           </div>
@@ -162,7 +146,7 @@ export function LaterIslandApp() {
           onBack={() => s.setShowTrash(false)}
           trashItems={s.trashItems}
           restoreTrashItem={s.restoreTrashItem}
-          openConfirmDeleteSelected={s.openConfirmDeleteSelected}
+          openConfirmDeletePermanently={s.openConfirmDeletePermanently}
         />
       )}
 

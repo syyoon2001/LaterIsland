@@ -21,8 +21,6 @@ interface HeaderProps {
   goSettings: () => void;
   language: Language;
 
-  isEditMode: boolean;
-  setIsEditMode: (v: boolean) => void;
   setShowTrash: (v: boolean) => void;
 }
 
@@ -52,8 +50,6 @@ export function Header({
   selectSort,
   goSettings,
   language,
-  isEditMode: _isEditMode,
-  setIsEditMode,
   setShowTrash,
 }: HeaderProps) {
   const t = translations[language];
@@ -247,16 +243,6 @@ export function Header({
                 </div>
               </div>
             )}
-            <div
-              onClick={() => {
-                setIsEditMode(true);
-                closeMenu();
-              }}
-              className={styles.iconButton}
-              style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}
-            >
-              {t.edit}
-            </div>
             <div
               onClick={() => {
                 setShowTrash(true);

@@ -85,12 +85,12 @@ export function useLaterIslandState() {
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
 
   // New Edit and Trash states
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingContentId, setEditingContentId] = useState<string | null>(null);
+  const [previousTab, setPreviousTab] = useState<Tab | null>(null);
   const [showTrash, setShowTrash] = useState(false);
   const [trashContents, setTrashContents] = useState<ContentItem[]>([]);
   const [trashCategories, setTrashCategories] = useState<Category[]>([]);
   const [trashTags, setTrashTags] = useState<{ tag: Tag; originalItemIds: string[] }[]>([]);
-  const [selectedContentIds, setSelectedContentIds] = useState<string[]>([]);
 
   useEffect(() => {
     const handleJump = (e: any) => {
@@ -249,21 +249,67 @@ export function useLaterIslandState() {
 
   const saveContent = () => {
     if (!form.title.trim()) return;
-    const newContent: ContentItem = {
-      id: 'ct_' + Date.now(),
-      sourceType: form.url.trim() ? 'link' : 'manual',
-      url: form.url.trim() || null,
-      title: form.title.trim(),
-      summary: form.summary.trim(),
-      categoryId: form.categoryId,
-      tagIds: form.tagIds,
-      status: 'pending',
-    };
-    setContents((prev) => [newContent, ...prev]);
-    setForm(emptyForm);
-    setActiveTab('home');
+    if (editingContentId) {
+      setContents((prev) =>
+        prev.map((c) =>
+          c.id === editingContentId
+            ? {
+                ...c,
+                title: form.title.trim(),
+                url: form.url.trim() || null,
+                summary: form.summary.trim(),
+                categoryId: form.categoryId,
+                tagIds: form.tagIds,
+                sourceType: form.url.trim() ? 'link' : 'manual',
+              }
+            : c
+        )
+      );
+      setEditingContentId(null);
+      setForm(emptyForm);
+      if (previousTab) {
+        setActiveTab(previousTab);
+      }
+    } else {
+      const newContent: ContentItem = {
+        id: 'ct_' + Date.now(),
+        sourceType: form.url.trim() ? 'link' : 'manual',
+        url: form.url.trim() || null,
+        title: form.title.trim(),
+        summary: form.summary.trim(),
+        categoryId: form.categoryId,
+        tagIds: form.tagIds,
+        status: 'pending',
+      };
+      setContents((prev) => [newContent, ...prev]);
+      setForm(emptyForm);
+      setActiveTab('home');
+    }
     setCategoryDropdownOpen(false);
     setTagDropdownOpen(false);
+  };
+
+  const startEditContent = (id: string) => {
+    const item = contents.find((c) => c.id === id);
+    if (!item) return;
+    setPreviousTab(activeTab);
+    setEditingContentId(id);
+    setForm({
+      title: item.title,
+      url: item.url || '',
+      summary: item.summary,
+      categoryId: item.categoryId,
+      tagIds: item.tagIds,
+    });
+    setActiveTab('add');
+  };
+
+  const cancelEditContent = () => {
+    setEditingContentId(null);
+    setForm(emptyForm);
+    if (previousTab) {
+      setActiveTab(previousTab);
+    }
   };
 
   const markDone = (id: string) => {
@@ -284,7 +330,7 @@ export function useLaterIslandState() {
   const openConfirmDeleteCategory = (cat: Category) => {
     const t = translations[settingsLanguage];
     setConfirmDialog({
-      title: t.confirmDeleteCategoryTitle,
+      title: t.confirmDeleteSingleTitle,
       actionLabel: t.delete,
       color: '#B15C4A',
       onConfirm: () => {
@@ -301,11 +347,8 @@ export function useLaterIslandState() {
 
   const openConfirmDeleteTag = (tag: Tag) => {
     const t = translations[settingsLanguage];
-    const titleText = typeof t.confirmDeleteTagTitle === 'function'
-      ? t.confirmDeleteTagTitle(tag.name)
-      : `'#${tag.name}' 태그를 삭제하시겠습니까?`;
     setConfirmDialog({
-      title: titleText,
+      title: t.confirmDeleteSingleTitle,
       actionLabel: t.delete,
       color: '#B15C4A',
       onConfirm: () => {
@@ -323,39 +366,40 @@ export function useLaterIslandState() {
     });
   };
 
-  const openConfirmDeleteSelected = (selectedIds: string[], isTrashScreen: boolean) => {
+  const openConfirmDeleteContent = (id: string) => {
     const t = translations[settingsLanguage];
-    const isSingle = selectedIds.length === 1;
-    const titleText = isTrashScreen
-      ? t.confirmDeletePermanentlyTitle
-      : (isSingle
-        ? t.confirmDeleteSingleTitle
-        : (typeof t.confirmDeleteSelectedTitle === 'function' ? t.confirmDeleteSelectedTitle(selectedIds.length) : `선택한 ${selectedIds.length}개 항목을 삭제하시겠습니까?`));
-
     setConfirmDialog({
-      title: titleText,
+      title: t.confirmDeleteSingleTitle,
       actionLabel: t.delete,
       color: '#B15C4A',
       onConfirm: () => {
-        if (isTrashScreen) {
-          selectedIds.forEach((id) => {
-            if (id.startsWith('cat_')) {
-              const catId = id.replace('cat_', '');
-              setTrashCategories((prev) => prev.filter((c) => c.id !== catId));
-            } else if (id.startsWith('tag_')) {
-              const tagId = id.replace('tag_', '');
-              setTrashTags((prev) => prev.filter((x) => x.tag.id !== tagId));
-            } else if (id.startsWith('content_')) {
-              const contentId = id.replace('content_', '');
-              setTrashContents((prev) => prev.filter((c) => c.id !== contentId));
-            }
-          });
-        } else {
-          const toDelete = contents.filter((c) => selectedIds.includes(c.id));
-          setContents((prev) => prev.filter((c) => !selectedIds.includes(c.id)));
-          setTrashContents((prev) => [...prev, ...toDelete.map((c) => ({ ...c, status: 'trash' as const }))]);
+        const item = contents.find((c) => c.id === id);
+        if (item) {
+          setContents((prev) => prev.filter((c) => c.id !== id));
+          setTrashContents((prev) => [...prev, { ...item, status: 'trash' as const }]);
         }
-        setSelectedContentIds([]);
+        setConfirmDialog(null);
+      },
+    });
+  };
+
+  const openConfirmDeletePermanently = (id: string) => {
+    const t = translations[settingsLanguage];
+    setConfirmDialog({
+      title: t.confirmDeletePermanentlyTitle,
+      actionLabel: t.delete,
+      color: '#B15C4A',
+      onConfirm: () => {
+        if (id.startsWith('cat_')) {
+          const catId = id.replace('cat_', '');
+          setTrashCategories((prev) => prev.filter((c) => c.id !== catId));
+        } else if (id.startsWith('tag_')) {
+          const tagId = id.replace('tag_', '');
+          setTrashTags((prev) => prev.filter((x) => x.tag.id !== tagId));
+        } else if (id.startsWith('content_')) {
+          const contentId = id.replace('content_', '');
+          setTrashContents((prev) => prev.filter((c) => c.id !== contentId));
+        }
         setConfirmDialog(null);
       },
     });
@@ -642,16 +686,16 @@ export function useLaterIslandState() {
     saveContent,
 
     // edit & trash
-    isEditMode,
-    setIsEditMode,
+    editingContentId,
+    startEditContent,
+    cancelEditContent,
     showTrash,
     setShowTrash,
     trashItems,
-    selectedContentIds,
-    setSelectedContentIds,
     openConfirmDeleteCategory,
     openConfirmDeleteTag,
-    openConfirmDeleteSelected,
+    openConfirmDeleteContent,
+    openConfirmDeletePermanently,
     restoreTrashItem,
     updateContentItem,
     updateContentTags,

@@ -5,23 +5,15 @@ import { translations } from '../../data/translations';
 interface DoneTabProps {
   doneContents: EnrichedContent[];
   language: Language;
-  isEditMode?: boolean;
-  selectedContentIds?: string[];
-  setSelectedContentIds?: (ids: string[]) => void;
-  onDeleteSelected?: (ids: string[]) => void;
-  onExitEditMode?: () => void;
-  onUpdateContent?: (id: string, fields: any) => void;
+  onEditItem?: (id: string) => void;
+  onDeleteItem?: (id: string) => void;
 }
 
 export function DoneTab({
   doneContents,
   language,
-  isEditMode,
-  selectedContentIds,
-  setSelectedContentIds,
-  onDeleteSelected,
-  onExitEditMode,
-  onUpdateContent,
+  onEditItem,
+  onDeleteItem,
 }: DoneTabProps) {
   const t = translations[language];
 
@@ -32,15 +24,10 @@ export function DoneTab({
           items={doneContents}
           emptyMessage={t.doneEmpty}
           language={language}
-          isEditMode={isEditMode}
-          selectedContentIds={selectedContentIds}
-          setSelectedContentIds={setSelectedContentIds}
-          onDeleteSelected={onDeleteSelected}
-          onExitEditMode={onExitEditMode}
-          onUpdateContent={onUpdateContent}
+          onEditItem={onEditItem}
+          onDeleteItem={onDeleteItem}
         />
       </div>
     </div>
   );
 }
-
