@@ -20,7 +20,12 @@ export async function generateMetadata({ title, summary, link, existingTags }) {
   let systemInstruction = "You are a helpful assistant. Analyze the given content (title, summary, link) and extract the best title, a concise summary, a single category (among: Book, Webtoon, Drama, Video, Article, Other), and an array of up to 3 relevant tags. Return the result strictly as a valid JSON object matching this schema: { \"title\": \"string\", \"summary\": \"string\", \"category\": \"string\", \"tags\": [\"string\"] }. Do not include markdown code blocks, just output the raw JSON.\n\nIMPORTANT INSTRUCTIONS FOR TAGS:\n1. Tags should NOT be highly specific to this single content (e.g., avoid \"겨드랑이색소침착\", \"화요일아침루틴\"). Instead, generate general, reusable subject/category-level tags (e.g., \"바디케어\", \"뷰티팁\", \"생활습관\").";
 
   if (existingTags && Array.isArray(existingTags) && existingTags.length > 0) {
-    systemInstruction += `\n2. The user already uses the following tags: ${JSON.stringify(existingTags)}. If any of these existing tags fit the content's meaning and subject, you MUST prioritize reusing them. ONLY generate new general tags if absolutely none of the existing tags are appropriate.`;
+    systemInstruction += `\n2. The user already uses the following tags: ${JSON.stringify(existingTags)}. If the content's topic overlaps EVEN SLIGHTLY with any of these existing tags (e.g., broad categories, adjacent topics, or parent/child concepts), you MUST prioritize reusing the existing tags rather than creating new ones.
+    - Example: If the user has ["현대미술", "미술전시", "문화예술"] and the content is a news article about Damien Hirst's new exhibition, DO NOT create new tags like "전시", "디자인", "데이미언허스트", or "국립현대미술관". You MUST reuse "현대미술", "미술전시", or "문화예술".
+    - Rule: Completely identical expressions are not required. If it belongs to the same broad category, reuse the tag.
+    - Rule: ONLY generate a completely new tag if absolutely none of the existing tags are even remotely appropriate.`;
+  } else {
+    systemInstruction += `\n2. The user has no existing tags yet. Create new general tags as instructed above.`;
   }
 
   const model = client.getGenerativeModel({

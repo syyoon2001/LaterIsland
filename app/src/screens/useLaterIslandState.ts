@@ -8,6 +8,7 @@ import {
   bumpTagUsage,
   clearAllUserData,
   deleteItemPermanently,
+  getTags,
   moveCategoryItemsToTrash,
   removeTagFromActiveItems,
   renameCategory,
@@ -404,7 +405,8 @@ export function useLaterIslandState() {
     // 2. Generate Metadata
     setAiLoadingStatus('generating');
     try {
-      const existingTags = rawTags.filter(t => !t.isDeleted).map(t => t.name);
+      const freshTags = await getTags(uid);
+      const existingTags = freshTags.filter(t => !t.isDeleted).map(t => t.name);
       const res = await fetch('/api/ai/generate-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

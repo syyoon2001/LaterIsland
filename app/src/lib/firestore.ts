@@ -192,6 +192,11 @@ export function softDeleteTag(uid: string, tagId: string) {
   return updateDoc(doc(tagsRef(uid), tagId), { isDeleted: true });
 }
 
+export async function getTags(uid: string): Promise<Tag[]> {
+  const snap = await getDocs(tagsRef(uid));
+  return snap.docs.map(tagFromDoc);
+}
+
 // --- dev/test tools (SimulationPanel, dev-only) ---------------------------
 
 // Hard-deletes every item/category/tag document for this user.
