@@ -99,22 +99,26 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
           style={{ width: 150, objectFit: 'contain', marginTop: -4, marginBottom: 28 }}
         />
 
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form 
+          onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+          style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}
+        >
           {isSignup && (
             <div>
               <label style={labelStyle}>{language === 'en' ? 'Name (Nickname)' : '이름 (닉네임)'}</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="이름을 입력하세요"
+                placeholder={language === 'en' ? 'Enter your name' : '이름을 입력하세요'}
                 style={inputStyle}
               />
             </div>
           )}
 
           <div>
-            <label style={labelStyle}>이메일</label>
+            <label style={labelStyle}>{language === 'en' ? 'Email' : '이메일'}</label>
             <input
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -123,24 +127,24 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
           </div>
 
           <div>
-            <label style={labelStyle}>비밀번호</label>
+            <label style={labelStyle}>{language === 'en' ? 'Password' : '비밀번호'}</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호를 입력하세요"
+              placeholder={language === 'en' ? 'Enter password' : '비밀번호를 입력하세요'}
               style={inputStyle}
             />
           </div>
 
           {isSignup && (
             <div>
-              <label style={labelStyle}>비밀번호 확인</label>
+              <label style={labelStyle}>{language === 'en' ? 'Confirm Password' : '비밀번호 확인'}</label>
               <input
                 type="password"
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
-                placeholder="비밀번호를 다시 입력하세요"
+                placeholder={language === 'en' ? 'Re-enter password' : '비밀번호를 다시 입력하세요'}
                 style={inputStyle}
               />
             </div>
@@ -149,7 +153,7 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
           {isLogin && (
             <div style={{ textAlign: 'right', marginTop: -6 }}>
               <span style={{ fontSize: 12, color: '#6E8C6A', fontWeight: 600, cursor: 'pointer' }}>
-                비밀번호를 잊으셨나요?
+                {language === 'en' ? 'Forgot password?' : '비밀번호를 잊으셨나요?'}
               </span>
             </div>
           )}
@@ -159,8 +163,7 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
           )}
 
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={submitting}
             style={{
               width: '100%',
@@ -177,8 +180,9 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
               marginTop: 6,
             }}
           >
-            {isLogin ? '로그인' : '회원가입'}
+            {isLogin ? (language === 'en' ? 'Log In' : '로그인') : (language === 'en' ? 'Sign Up' : '회원가입')}
           </button>
+        </form>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0' }}>
             <div style={{ flex: 1, height: 1, background: 'rgba(63,82,64,0.15)' }} />
@@ -186,27 +190,28 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
             <div style={{ flex: 1, height: 1, background: 'rgba(63,82,64,0.15)' }} />
           </div>
 
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={submitting}
-            style={{
-              width: '100%',
-              border: '1px solid rgba(63,82,64,0.25)',
-              borderRadius: 10,
-              padding: 13,
-              background: '#F7F9F2',
-              color: '#3F5240',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: submitting ? 'default' : 'pointer',
-              opacity: submitting ? 0.7 : 1,
-              fontFamily: 'inherit',
-            }}
-          >
-            Google로 계속하기
-          </button>
-        </div>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <button
+              type="button"
+              onClick={handleGoogle}
+              disabled={submitting}
+              style={{
+                width: '100%',
+                border: '1px solid rgba(63,82,64,0.25)',
+                borderRadius: 10,
+                padding: 13,
+                background: '#F7F9F2',
+                color: '#3F5240',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: submitting ? 'default' : 'pointer',
+                opacity: submitting ? 0.7 : 1,
+                fontFamily: 'inherit',
+              }}
+            >
+              Google로 계속하기
+            </button>
+          </div>
 
         <div style={{ flex: 1 }} />
 
