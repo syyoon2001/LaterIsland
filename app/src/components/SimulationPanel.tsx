@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react';
 
 export function SimulationPanel() {
   const [isOpen, setIsOpen] = useState(false);
+  const [language, setLanguage] = useState<'ko' | 'en'>('ko');
   const [activeId, setActiveId] = useState<string>('ko-cover'); // e.g. ko-home, en-settings
 
   useEffect(() => {
     const handleSync = (e: any) => {
-      const { screen, activeTab, showSettings, settingsLanguage } = e.detail;
+      const { screen, activeTab, showSettings, settingsLanguage, authMode } = e.detail;
       const langPrefix = settingsLanguage === 'en' ? 'en' : 'ko';
+      setLanguage(langPrefix);
 
       if (screen === 'cover') {
         setActiveId(langPrefix + '-cover');
       } else if (screen === 'auth') {
-        setActiveId(langPrefix + '-auth');
+        setActiveId(langPrefix + '-auth-' + (authMode === 'signup' ? 'signup' : 'login'));
       } else if (screen === 'app') {
         if (showSettings) {
           setActiveId(langPrefix + '-settings');
@@ -26,29 +28,33 @@ export function SimulationPanel() {
     return () => window.removeEventListener('simulation-sync', handleSync);
   }, []);
 
-  const jumpTo = (target: string, lang: 'ko' | 'en') => {
-    setActiveId(lang + '-' + target);
-    window.dispatchEvent(new CustomEvent('simulation-jump', { detail: { target, lang } }));
+  // Jumps to a screen using the app's current language. Pass `lang` only to
+  // force a specific language, and `mode` to pick login vs signup on the
+  // auth screen (since the auth screen has no English text yet, login/signup
+  // entries always force Korean).
+  const jumpTo = (target: string, opts?: { lang?: 'ko' | 'en'; mode?: 'login' | 'signup' }) => {
+    const effectiveLang = opts?.lang ?? language;
+    const activeSuffix = target === 'auth' && opts?.mode ? `auth-${opts.mode}` : target;
+    setActiveId(effectiveLang + '-' + activeSuffix);
+    window.dispatchEvent(new CustomEvent('simulation-jump', { detail: { target, lang: opts?.lang, mode: opts?.mode } }));
   };
 
-  const koGroup = [
-    { id: 'cover', label: '커버' },
-    { id: 'home', label: '홈' },
-    { id: 'category', label: '카테고리' },
-    { id: 'add', label: '추가' },
-    { id: 'tags', label: '태그' },
-    { id: 'done', label: '완료' },
-    { id: 'settings', label: '설정' },
-  ];
-
-  const enGroup = [
-    { id: 'cover', label: 'Cover' },
-    { id: 'home', label: 'Home' },
-    { id: 'category', label: 'Category' },
-    { id: 'add', label: 'Add' },
-    { id: 'tags', label: 'Tag' },
-    { id: 'done', label: 'Done' },
-    { id: 'settings', label: 'Settings' },
+  // Single unified screen list (no more separate ko/en groups). Each entry's
+  // label follows the app's current language; clicking navigates to that
+  // screen in the current language. `mode` distinguishes the login/signup
+  // entries, which both target the 'auth' screen but should open (and
+  // highlight) independently.
+  const screenItems: { key: string; id: string; ko: string; en: string; lang?: 'ko' | 'en'; mode?: 'login' | 'signup' }[] = [
+    { key: 'cover', id: 'cover', ko: '커버', en: 'Cover' },
+    { key: 'home', id: 'home', ko: '홈', en: 'Home' },
+    { key: 'category', id: 'category', ko: '카테고리', en: 'Category' },
+    { key: 'add', id: 'add', ko: '추가', en: 'Add' },
+    { key: 'tags', id: 'tags', ko: '태그', en: 'Tag' },
+    { key: 'done', id: 'done', ko: '완료', en: 'Done' },
+    { key: 'settings', id: 'settings', ko: '설정', en: 'Settings' },
+    // Auth screen has no English text yet, so these always link to the Korean version.
+    { key: 'login', id: 'auth', mode: 'login', ko: '로그인', en: 'Login', lang: 'ko' },
+    { key: 'signup', id: 'auth', mode: 'signup', ko: '회원가입', en: 'Sign Up', lang: 'ko' },
   ];
 
   return (
@@ -108,44 +114,17 @@ export function SimulationPanel() {
 
         <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
           <h2 style={{ fontSize: 16, fontWeight: 'bold', color: '#3F5240', margin: '0 0 12px 0' }}>
-            TransitionShowcase
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
-            {koGroup.map((item) => {
-              const isActive = activeId === 'ko-' + item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => jumpTo(item.id, 'ko')}
-                  style={{
-                    padding: '10px 16px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: isActive ? '#6E8C6A' : 'transparent',
-                    color: isActive ? '#fff' : '#3F5240',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: isActive ? 600 : 400,
-                    transition: 'background 0.2s',
-                  }}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <h2 style={{ fontSize: 16, fontWeight: 'bold', color: '#3F5240', margin: '0 0 12px 0' }}>
-            TransitionShowcase EN
+            시스템 제어판
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {enGroup.map((item) => {
-              const isActive = activeId === 'en-' + item.id;
+            {screenItems.map((item) => {
+              const effectiveLang = item.lang ?? language;
+              const activeSuffix = item.id === 'auth' && item.mode ? `auth-${item.mode}` : item.id;
+              const isActive = activeId === effectiveLang + '-' + activeSuffix;
               return (
                 <button
-                  key={item.id}
-                  onClick={() => jumpTo(item.id, 'en')}
+                  key={item.key}
+                  onClick={() => jumpTo(item.id, { lang: item.lang, mode: item.mode })}
                   style={{
                     padding: '10px 16px',
                     borderRadius: 8,
@@ -159,7 +138,7 @@ export function SimulationPanel() {
                     transition: 'background 0.2s',
                   }}
                 >
-                  {item.label}
+                  {language === 'en' ? item.en : item.ko}
                 </button>
               );
             })}

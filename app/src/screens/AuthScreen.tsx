@@ -7,6 +7,7 @@ type Mode = 'login' | 'signup';
 interface AuthScreenProps {
   onAuthenticated: () => void;
   language: Language;
+  initialMode?: Mode;
 }
 
 const inputStyle = {
@@ -28,8 +29,8 @@ const labelStyle = {
   marginBottom: 6,
 };
 
-export function AuthScreen({ onAuthenticated, language }: AuthScreenProps) {
-  const [mode, setMode] = useState<Mode>('login');
+export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }: AuthScreenProps) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,50 +58,6 @@ export function AuthScreen({ onAuthenticated, language }: AuthScreenProps) {
           alt="Later Island"
           style={{ width: 150, objectFit: 'contain', marginTop: -4, marginBottom: 28 }}
         />
-
-        <div
-          style={{
-            width: '100%',
-            display: 'flex',
-            border: '1px solid rgba(63,82,64,0.2)',
-            borderRadius: 999,
-            overflow: 'hidden',
-            marginBottom: 28,
-          }}
-        >
-          <div
-            onClick={() => setMode('login')}
-            style={{
-              flex: 1,
-              textAlign: 'center',
-              padding: 12,
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: 'pointer',
-              borderRadius: 999,
-              background: isLogin ? '#6E8C6A' : '#F7F9F2',
-              color: isLogin ? '#fff' : '#3F5240',
-            }}
-          >
-            로그인
-          </div>
-          <div
-            onClick={() => setMode('signup')}
-            style={{
-              flex: 1,
-              textAlign: 'center',
-              padding: 12,
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: 'pointer',
-              borderRadius: 999,
-              background: isSignup ? '#6E8C6A' : '#F7F9F2',
-              color: isSignup ? '#fff' : '#3F5240',
-            }}
-          >
-            회원가입
-          </div>
-        </div>
 
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {isSignup && (
