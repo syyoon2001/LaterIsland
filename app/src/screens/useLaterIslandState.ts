@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { deleteCurrentUser, getAuthErrorMessage, signOutUser, subscribeToAuthState } from '../lib/auth';
 import {
@@ -37,7 +37,6 @@ import {
   categoryTranslations,
   tagTranslations,
   contentTranslations,
-  aiPoolsEn,
 } from '../data/translations';
 
 // Finds an existing (non-deleted) category by name, or creates one in
@@ -76,14 +75,6 @@ async function findOrCreateTagFs(uid: string, existing: Tag[], name: string, usa
 }
 
 const emptyForm: ContentForm = { title: '', url: '', summary: '', categoryId: null, tagIds: [] };
-
-const aiPools = [
-  { category: '글', tags: ['자기계발', '힐링'], tail: '핵심 내용을 정리한 아티클입니다.' },
-  { category: '영상', tags: ['재테크'], tail: '주요 포인트를 짚어주는 영상입니다.' },
-  { category: '책', tags: ['자기계발'], tail: '핵심 메시지를 요약한 책입니다.' },
-  { category: '드라마', tags: ['힐링'], tail: '줄거리와 감상 포인트를 정리했습니다.' },
-];
-
 
 export function useLaterIslandState() {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -712,7 +703,7 @@ export function useLaterIslandState() {
     }
   };
 
-  const searchedContents = React.useMemo(() => {
+  const searchedContents = useMemo(() => {
     if (aiSearchOrder) {
       const map = new Map();
       translatedContents.forEach(c => map.set(c.id, c));
@@ -731,7 +722,7 @@ export function useLaterIslandState() {
   const enrich = (c: ContentItem) => ({
     ...c,
     categoryName: catMapAll[c.categoryId ?? ''] || enrichmentCategoryNameFallback,
-    tagNames: (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean),
+    tagNames: (c.tagIds || []).map((id: string) => tagMap[id]).filter(Boolean),
     onComplete: () => markDone(c.id),
     onUncomplete: () => updateContentItem(c.id, { status: 'pending' }),
   });
@@ -805,7 +796,7 @@ export function useLaterIslandState() {
     .filter((c) => c.status === 'trash')
     .map((c) => {
       const categoryName = catMapAll[c.categoryId ?? ''] || enrichmentCategoryNameFallback;
-      const tagNames = (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean);
+      const tagNames = (c.tagIds || []).map((id: string) => tagMap[id]).filter(Boolean);
       return {
         id: 'content_' + c.id,
         type: 'content' as const,
