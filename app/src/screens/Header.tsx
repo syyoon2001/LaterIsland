@@ -6,6 +6,8 @@ interface HeaderProps {
   searchOpen: boolean;
   searchQuery: string;
   setSearchQuery: (v: string) => void;
+  performAiSearch: () => void;
+  isAiSearching: boolean;
   toggleSearch: () => void;
   closeSearch: () => void;
 
@@ -39,6 +41,8 @@ export function Header({
   searchOpen,
   searchQuery,
   setSearchQuery,
+  performAiSearch,
+  isAiSearching,
   toggleSearch,
   closeSearch,
   menuOpen,
@@ -132,21 +136,23 @@ export function Header({
             />
             <button
               type="button"
-              onClick={() => {}}
+              onClick={performAiSearch}
+              disabled={isAiSearching || !searchQuery.trim()}
               style={{
                 alignSelf: 'flex-start',
                 border: '1px solid #6E8C6A',
                 borderRadius: 8,
                 padding: '6px 12px',
-                background: '#F7F9F2',
-                color: '#6E8C6A',
+                background: isAiSearching ? 'transparent' : '#F7F9F2',
+                color: isAiSearching ? '#a0b89f' : '#6E8C6A',
                 fontSize: 12,
                 fontWeight: 600,
-                cursor: 'pointer',
+                cursor: isAiSearching || !searchQuery.trim() ? 'default' : 'pointer',
                 fontFamily: 'inherit',
+                opacity: isAiSearching || !searchQuery.trim() ? 0.7 : 1,
               }}
             >
-              {t.searchAi}
+              {isAiSearching ? (language === 'ko' ? '검색 중...' : 'Searching...') : t.searchAi}
             </button>
           </div>
         </>

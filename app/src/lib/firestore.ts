@@ -37,6 +37,8 @@ function itemFromDoc(snap: QueryDocumentSnapshot<DocumentData>): ContentItem {
     categoryId: data.categoryId ?? null,
     tagIds: data.tagIds ?? [],
     status,
+    aiGenerated: data.aiGenerated,
+    embedding: data.embedding,
   };
 }
 
@@ -84,6 +86,11 @@ export interface ItemFields {
   summary: string;
   categoryId: string | null;
   tagIds: string[];
+  aiGenerated?: boolean;
+  embedding?: {
+    vector: number[];
+    model: string;
+  };
 }
 
 export async function addItem(uid: string, fields: ItemFields): Promise<string> {
@@ -97,6 +104,8 @@ export async function addItem(uid: string, fields: ItemFields): Promise<string> 
     isDeleted: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    ...(fields.aiGenerated !== undefined && { aiGenerated: fields.aiGenerated }),
+    ...(fields.embedding !== undefined && { embedding: fields.embedding }),
   });
   return ref.id;
 }
@@ -108,6 +117,8 @@ export function updateItemFields(uid: string, itemId: string, fields: Partial<It
   if (fields.summary !== undefined) patch.summary = fields.summary;
   if (fields.categoryId !== undefined) patch.categoryId = fields.categoryId;
   if (fields.tagIds !== undefined) patch.tagIds = fields.tagIds;
+  if (fields.aiGenerated !== undefined) patch.aiGenerated = fields.aiGenerated;
+  if (fields.embedding !== undefined) patch.embedding = fields.embedding;
   return updateDoc(doc(itemsRef(uid), itemId), patch);
 }
 

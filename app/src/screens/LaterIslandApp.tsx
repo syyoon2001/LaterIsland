@@ -27,6 +27,8 @@ export function LaterIslandApp() {
             searchOpen={s.searchOpen}
             searchQuery={s.searchQuery}
             setSearchQuery={s.setSearchQuery}
+            performAiSearch={s.performAiSearch}
+            isAiSearching={s.isAiSearching}
             toggleSearch={s.toggleSearch}
             closeSearch={s.closeSearch}
             menuOpen={s.menuOpen}
@@ -88,6 +90,7 @@ export function LaterIslandApp() {
                     setNewTagInput={s.setNewTagInput}
                     addNewTag={s.addNewTag}
                     generateAI={s.generateAI}
+                    isAiGenerating={s.isAiGenerating}
                     saveContent={s.saveContent}
                     language={s.settingsLanguage}
                     isEditing={!!s.editingContentId}

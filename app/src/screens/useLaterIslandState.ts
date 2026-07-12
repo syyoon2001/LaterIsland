@@ -88,6 +88,8 @@ const aiPools = [
 export function useLaterIslandState() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAiSearching, setIsAiSearching] = useState(false);
+  const [aiSearchOrder, setAiSearchOrder] = useState<string[] | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [sortSubmenuOpen, setSortSubmenuOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
@@ -97,6 +99,7 @@ export function useLaterIslandState() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
   const [form, setForm] = useState<ContentForm>(emptyForm);
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [newCategoryInput, setNewCategoryInput] = useState('');
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
@@ -124,6 +127,11 @@ export function useLaterIslandState() {
     });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    // Reset AI search order when user starts typing a new query
+    setAiSearchOrder(null);
+  }, [searchQuery]);
 
   // Firestore-backed data: items (all statuses — trash is just isDeleted:true
   // on the same collection), categories, and tags. `rawCategories`/`rawTags`
@@ -363,24 +371,49 @@ export function useLaterIslandState() {
 
   const generateAI = async () => {
     if (!uid) return;
-    const pools = settingsLanguage === 'ko' ? aiPools : aiPoolsEn;
-    const seed = (contents.length + form.title.length) % pools.length;
-    const pick = pools[seed];
-    let title = form.title.trim();
-    if (!title) {
-      title = form.url ? form.url.replace(/^https?:\/\//, '').split('/')[0] : (settingsLanguage === 'ko' ? '제목 없음' : 'Untitled');
+    const { title, url, summary } = form;
+    if (!title.trim() && !url.trim() && !summary.trim()) {
+      alert(settingsLanguage === 'ko' ? '링크나 요약을 먼저 입력해주세요.' : 'Please enter a link or summary first.');
+      return;
     }
-    const categoryId = await findOrCreateCategoryFs(uid, rawCategories, pick.category);
-    const tagIds: string[] = [];
-    for (const tn of pick.tags) {
-      const tid = await findOrCreateTagFs(uid, rawTags, tn, Date.now());
-      if (tid) tagIds.push(tid);
+    
+    setIsAiGenerating(true);
+    try {
+      const res = await fetch('/api/ai/generate-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, link: url, summary }),
+      });
+      if (!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      
+      const patch = { ...form };
+      if (data.title) patch.title = data.title;
+      if (data.summary) patch.summary = data.summary;
+      
+      if (data.category) {
+        const catId = await findOrCreateCategoryFs(uid, rawCategories, data.category);
+        if (catId) patch.categoryId = catId;
+      }
+      if (data.tags && Array.isArray(data.tags)) {
+        const tagIds = [];
+        for (const tn of data.tags) {
+          const tid = await findOrCreateTagFs(uid, rawTags, tn, Date.now());
+          if (tid) tagIds.push(tid);
+        }
+        patch.tagIds = Array.from(new Set([...patch.tagIds, ...tagIds]));
+      }
+      
+      setForm(patch);
+    } catch (e) {
+      console.error(e);
+      alert(settingsLanguage === 'ko' ? 'AI 자동생성에 실패했습니다.' : 'Failed to generate AI metadata.');
+    } finally {
+      setIsAiGenerating(false);
     }
-    const summary = title + ' — ' + pick.tail;
-    setForm((prev) => ({ ...prev, title, summary, categoryId, tagIds }));
   };
 
-  const saveContent = () => {
+  const saveContent = async () => {
     if (!uid || !form.title.trim()) return;
     const fields: ItemFields = {
       title: form.title.trim(),
@@ -389,6 +422,29 @@ export function useLaterIslandState() {
       categoryId: form.categoryId,
       tagIds: form.tagIds,
     };
+    
+    try {
+      const tagNames = fields.tagIds.map(id => tagMap[id] || '').filter(Boolean).join(' ');
+      const textToEmbed = `${fields.title} ${fields.summary} ${tagNames}`.trim();
+      if (textToEmbed) {
+        const res = await fetch('/api/ai/generate-embedding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: textToEmbed })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.vector && data.model) {
+            fields.embedding = { vector: data.vector, model: data.model };
+          }
+        } else {
+          console.error("Embedding generation failed", await res.text());
+        }
+      }
+    } catch (e) {
+      console.error("Embedding generation error", e);
+    }
+
     if (editingContentId) {
       updateItemFields(uid, editingContentId, fields).catch(console.error);
       setEditingContentId(null);
@@ -585,6 +641,58 @@ export function useLaterIslandState() {
     tagMap[t.id] = t.name;
   });
 
+  const performAiSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setIsAiSearching(true);
+    setAiSearchOrder(null);
+    try {
+      const res = await fetch('/api/ai/generate-embedding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: searchQuery })
+      });
+      if (!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      const queryVector = data.vector;
+      if (!queryVector) throw new Error('No vector returned');
+
+      const dotProduct = (a: number[], b: number[]) => a.reduce((sum, val, i) => sum + val * b[i], 0);
+      const magnitude = (v: number[]) => Math.sqrt(v.reduce((sum, val) => sum + val * val, 0));
+      const qMag = magnitude(queryVector);
+
+      const scored = translatedContents
+        .filter(c => c.embedding?.vector)
+        .map(c => {
+          const v = c.embedding!.vector;
+          const sim = dotProduct(queryVector, v) / (qMag * magnitude(v));
+          return { id: c.id, sim };
+        });
+      
+      scored.sort((a, b) => b.sim - a.sim);
+      setAiSearchOrder(scored.map(s => s.id));
+    } catch(e) {
+      console.error('AI search failed', e);
+      alert(settingsLanguage === 'ko' ? 'AI 검색에 실패했습니다.' : 'AI search failed.');
+    } finally {
+      setIsAiSearching(false);
+    }
+  };
+
+  const searchedContents = React.useMemo(() => {
+    if (aiSearchOrder) {
+      const map = new Map();
+      translatedContents.forEach(c => map.set(c.id, c));
+      return aiSearchOrder.map(id => map.get(id)).filter((c): c is NonNullable<typeof c> => Boolean(c));
+    } else {
+      return translatedContents.filter((c) => {
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase();
+        const tags = (c.tagIds || []).map(id => tagMap[id] || '').join(' ').toLowerCase();
+        return c.title.toLowerCase().includes(q) || c.summary.toLowerCase().includes(q) || tags.includes(q);
+      });
+    }
+  }, [translatedContents, searchQuery, aiSearchOrder, tagMap]);
+
   const enrichmentCategoryNameFallback = settingsLanguage === 'ko' ? '미분류' : 'Uncategorized';
   const enrich = (c: ContentItem) => ({
     ...c,
@@ -594,11 +702,11 @@ export function useLaterIslandState() {
     onUncomplete: () => updateContentItem(c.id, { status: 'pending' }),
   });
 
-  const pendingContents = translatedContents.filter((c) => c.status === 'pending').map(enrich);
-  const doneContents = translatedContents.filter((c) => c.status === 'done').map(enrich);
+  const pendingContents = searchedContents.filter((c) => c.status === 'pending').map(enrich);
+  const doneContents = searchedContents.filter((c) => c.status === 'done').map(enrich);
 
   const categoryRows = translatedCategories.map((cat) => {
-    const count = translatedContents.filter((c) => c.categoryId === cat.id && c.status === 'pending').length;
+    const count = searchedContents.filter((c) => c.categoryId === cat.id && c.status === 'pending').length;
     return {
       id: cat.id,
       name: cat.name,
@@ -608,14 +716,14 @@ export function useLaterIslandState() {
   });
   const selectedCategory = translatedCategories.find((c) => c.id === selectedCategoryId) || null;
   const categoryFilteredContents = selectedCategoryId
-    ? translatedContents.filter((c) => c.categoryId === selectedCategoryId && c.status === 'pending').map(enrich)
+    ? searchedContents.filter((c) => c.categoryId === selectedCategoryId && c.status === 'pending').map(enrich)
     : [];
 
   const tagRows = translatedTags
     .slice()
     .sort((a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
     .map((t) => {
-      const count = translatedContents.filter((c) => (c.tagIds || []).includes(t.id) && c.status === 'pending').length;
+      const count = searchedContents.filter((c) => (c.tagIds || []).includes(t.id) && c.status === 'pending').length;
       return {
         id: t.id,
         name: t.name,
@@ -625,7 +733,7 @@ export function useLaterIslandState() {
     });
   const selectedTag = translatedTags.find((t) => t.id === selectedTagId) || null;
   const tagFilteredContents = selectedTagId
-    ? translatedContents.filter((c) => (c.tagIds || []).includes(selectedTagId) && c.status === 'pending').map(enrich)
+    ? searchedContents.filter((c) => (c.tagIds || []).includes(selectedTagId) && c.status === 'pending').map(enrich)
     : [];
 
   const formCategoryRows = translatedCategories.map((cat) => ({
@@ -659,7 +767,7 @@ export function useLaterIslandState() {
 
   const activeConfirm = confirmDialog;
 
-  const trashItems = translatedContents
+  const trashItems = searchedContents
     .filter((c) => c.status === 'trash')
     .map((c) => {
       const categoryName = catMapAll[c.categoryId ?? ''] || enrichmentCategoryNameFallback;
@@ -679,6 +787,8 @@ export function useLaterIslandState() {
     searchOpen,
     searchQuery,
     setSearchQuery,
+    performAiSearch,
+    isAiSearching,
     toggleSearch,
     closeSearch,
     menuOpen,
@@ -749,6 +859,7 @@ export function useLaterIslandState() {
     addNewTag,
 
     generateAI,
+    isAiGenerating,
     saveContent,
 
     // edit & trash

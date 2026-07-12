@@ -45,6 +45,7 @@ interface AddTabProps {
   addNewTag: () => void;
 
   generateAI: () => void;
+  isAiGenerating?: boolean;
   saveContent: () => void;
   language: Language;
   isEditing?: boolean;
@@ -85,6 +86,7 @@ export function AddTab({
   setNewTagInput,
   addNewTag,
   generateAI,
+  isAiGenerating = false,
   saveContent,
   language,
   isEditing = false,
@@ -98,14 +100,30 @@ export function AddTab({
   return (
     <div data-screen-label={pageTitle}>
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <div>
-          <label style={labelStyle}>{t.formTitleLabel}</label>
-          <input
-            value={form.title}
-            onChange={(e) => setFormTitle(e.target.value)}
-            placeholder={t.formTitlePlaceholder}
-            style={inputStyle}
-          />
+        {/* title + AI Autofill row */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>{t.formTitleLabel}</label>
+            <input value={form.title} onChange={(e) => setFormTitle(e.target.value)} placeholder={t.formTitlePlaceholder} style={inputStyle} />
+          </div>
+          <button
+            onClick={generateAI}
+            disabled={isAiGenerating}
+            style={{
+              height: 41,
+              padding: '0 16px',
+              border: 'none',
+              borderRadius: 10,
+              background: '#6E8C6A',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: isAiGenerating ? 'default' : 'pointer',
+              opacity: isAiGenerating ? 0.7 : 1,
+            }}
+          >
+            {isAiGenerating ? (language === 'ko' ? '생성 중...' : 'Generating...') : (language === 'ko' ? '✦ AI 자동생성' : '✦ AI Autofill')}
+          </button>
         </div>
 
         <div>
