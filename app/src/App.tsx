@@ -26,6 +26,7 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [coverOpacity, setCoverOpacity] = useState(1);
+  const [contentOpacity, setContentOpacity] = useState(0);
 
   // Refs mirror the state above so the cover-timer effect (which only
   // depends on `screen`) and the always-on auth subscription can read the
@@ -137,45 +138,51 @@ export default function App() {
     };
   }, [screen]);
 
+  useEffect(() => {
+    if (screen !== 'cover') {
+      // Slight delay to allow DOM to mount with opacity 0 before transitioning
+      const timer = window.setTimeout(() => setContentOpacity(1), 50);
+      return () => window.clearTimeout(timer);
+    } else {
+      setContentOpacity(0);
+    }
+  }, [screen]);
+
   let content = null;
   if (screen === 'cover') {
-    // Render the destination screen underneath so the cover fade reveals it,
-    // instead of jumping to a blank frame once the fade finishes.
-    const destination = isLoggedIn ? (
-      <LaterIslandApp />
-    ) : (
-      <AuthScreen key={authMode} onAuthenticated={() => setScreen('app')} language={language} initialMode={authMode} />
-    );
-
+    // Only render the cover screen, fading it out against the body background.
+    // The destination will mount and fade in AFTER the cover is fully removed.
     content = (
-      <div style={{ position: 'relative' }}>
-        {destination}
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1,
-            opacity: coverOpacity,
-            transition: `opacity ${FADE_MS}ms ease`,
-            pointerEvents: coverOpacity === 0 ? 'none' : 'auto',
-          }}
-        >
-          {/* onEnter is a no-op: the cover advances automatically, not on click. */}
-          <CoverScreen onEnter={() => {}} language={language} />
-        </div>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1,
+          opacity: coverOpacity,
+          transition: `opacity ${FADE_MS}ms ease`,
+          pointerEvents: coverOpacity === 0 ? 'none' : 'auto',
+        }}
+      >
+        <CoverScreen onEnter={() => {}} language={language} />
       </div>
     );
   } else if (screen === 'auth') {
     content = (
-      <AuthScreen
-        key={authMode}
-        onAuthenticated={() => setScreen('app')}
-        language={language}
-        initialMode={authMode}
-      />
+      <div style={{ opacity: contentOpacity, transition: `opacity ${FADE_MS}ms ease` }}>
+        <AuthScreen
+          key={authMode}
+          onAuthenticated={() => setScreen('app')}
+          language={language}
+          initialMode={authMode}
+        />
+      </div>
     );
   } else {
-    content = <LaterIslandApp />;
+    content = (
+      <div style={{ opacity: contentOpacity, transition: `opacity ${FADE_MS}ms ease` }}>
+        <LaterIslandApp />
+      </div>
+    );
   }
 
   return (
