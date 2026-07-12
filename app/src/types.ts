@@ -31,6 +31,11 @@ export interface ContentItem {
   originalCategoryName?: string;
   tagIds: string[];
   status: ContentStatus;
+  aiGenerated?: boolean;
+  embedding?: {
+    vector: number[];
+    model: string;
+  };
 }
 
 export interface ContentForm {
