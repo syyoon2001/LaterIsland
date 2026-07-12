@@ -413,8 +413,8 @@ export function useLaterIslandState() {
       const data = await res.json();
       
       const patch = { ...form };
-      if (data.title && !form.title.trim()) patch.title = data.title;
-      if (data.summary && !form.summary.trim()) patch.summary = data.summary;
+      if (data.title) patch.title = data.title;
+      if (data.summary) patch.summary = data.summary;
       
       if (data.category) {
         const catId = await findOrCreateCategoryFs(uid, rawCategories, data.category);
@@ -426,7 +426,8 @@ export function useLaterIslandState() {
           const tid = await findOrCreateTagFs(uid, rawTags, tn, Date.now());
           if (tid) tagIds.push(tid);
         }
-        patch.tagIds = Array.from(new Set([...patch.tagIds, ...tagIds]));
+        // 새 결과로 완전히 덮어씀 (기존 태그 초기화 후 새 태그만 할당)
+        patch.tagIds = tagIds;
       }
       
       setForm(patch);
