@@ -90,7 +90,7 @@ export function LaterIslandApp() {
                     setNewTagInput={s.setNewTagInput}
                     addNewTag={s.addNewTag}
                     generateAI={s.generateAI}
-                    isAiGenerating={s.isAiGenerating}
+                    aiLoadingStatus={s.aiLoadingStatus}
                     saveContent={s.saveContent}
                     language={s.settingsLanguage}
                     isEditing={!!s.editingContentId}

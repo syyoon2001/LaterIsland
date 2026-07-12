@@ -99,7 +99,7 @@ export function useLaterIslandState() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
   const [form, setForm] = useState<ContentForm>(emptyForm);
-  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const [aiLoadingStatus, setAiLoadingStatus] = useState<'idle' | 'fetching' | 'generating'>('idle');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [newCategoryInput, setNewCategoryInput] = useState('');
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
@@ -377,19 +377,53 @@ export function useLaterIslandState() {
       return;
     }
     
-    setIsAiGenerating(true);
+    let textToAnalyze = summary;
+
+    // 1. Fetch page content if URL is present
+    if (url.trim()) {
+      setAiLoadingStatus('fetching');
+      try {
+        const fetchRes = await fetch('/api/ai/fetch-page-content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ link: url.trim() }),
+        });
+        if (fetchRes.ok) {
+          const fetchData = await fetchRes.json();
+          if (fetchData.extractedText) {
+            textToAnalyze = summary ? `${summary}\n\n${fetchData.extractedText}` : fetchData.extractedText;
+          }
+        } else {
+          // Fallback if blocked
+          if (!summary.trim()) {
+            alert(settingsLanguage === 'ko' ? '페이지 내용을 가져오지 못했어요. 직접 요약을 입력해주세요.' : 'Failed to fetch page. Please provide a manual summary.');
+            setAiLoadingStatus('idle');
+            return;
+          }
+        }
+      } catch (err) {
+        if (!summary.trim()) {
+          alert(settingsLanguage === 'ko' ? '페이지 내용을 가져오지 못했어요. 직접 요약을 입력해주세요.' : 'Failed to fetch page. Please provide a manual summary.');
+          setAiLoadingStatus('idle');
+          return;
+        }
+      }
+    }
+
+    // 2. Generate Metadata
+    setAiLoadingStatus('generating');
     try {
       const res = await fetch('/api/ai/generate-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, link: url, summary }),
+        body: JSON.stringify({ title, link: url, summary: textToAnalyze }),
       });
       if (!res.ok) throw new Error('API Error');
       const data = await res.json();
       
       const patch = { ...form };
-      if (data.title) patch.title = data.title;
-      if (data.summary) patch.summary = data.summary;
+      if (data.title && !form.title.trim()) patch.title = data.title;
+      if (data.summary && !form.summary.trim()) patch.summary = data.summary;
       
       if (data.category) {
         const catId = await findOrCreateCategoryFs(uid, rawCategories, data.category);
@@ -409,7 +443,7 @@ export function useLaterIslandState() {
       console.error(e);
       alert(settingsLanguage === 'ko' ? 'AI 자동생성에 실패했습니다.' : 'Failed to generate AI metadata.');
     } finally {
-      setIsAiGenerating(false);
+      setAiLoadingStatus('idle');
     }
   };
 
@@ -859,7 +893,7 @@ export function useLaterIslandState() {
     addNewTag,
 
     generateAI,
-    isAiGenerating,
+    aiLoadingStatus,
     saveContent,
 
     // edit & trash

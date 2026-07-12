@@ -45,7 +45,7 @@ interface AddTabProps {
   addNewTag: () => void;
 
   generateAI: () => void;
-  isAiGenerating?: boolean;
+  aiLoadingStatus?: 'idle' | 'fetching' | 'generating';
   saveContent: () => void;
   language: Language;
   isEditing?: boolean;
@@ -86,7 +86,7 @@ export function AddTab({
   setNewTagInput,
   addNewTag,
   generateAI,
-  isAiGenerating = false,
+  aiLoadingStatus = 'idle',
   saveContent,
   language,
   isEditing = false,
@@ -108,7 +108,7 @@ export function AddTab({
           </div>
           <button
             onClick={generateAI}
-            disabled={isAiGenerating}
+            disabled={aiLoadingStatus !== 'idle'}
             style={{
               height: 41,
               padding: '0 16px',
@@ -118,11 +118,15 @@ export function AddTab({
               color: '#fff',
               fontWeight: 600,
               fontSize: 13,
-              cursor: isAiGenerating ? 'default' : 'pointer',
-              opacity: isAiGenerating ? 0.7 : 1,
+              cursor: aiLoadingStatus !== 'idle' ? 'default' : 'pointer',
+              opacity: aiLoadingStatus !== 'idle' ? 0.7 : 1,
             }}
           >
-            {isAiGenerating ? (language === 'ko' ? '생성 중...' : 'Generating...') : (language === 'ko' ? '✦ AI 자동생성' : '✦ AI Autofill')}
+            {aiLoadingStatus === 'fetching' 
+              ? (language === 'ko' ? '페이지 불러오는 중...' : 'Fetching page...') 
+              : aiLoadingStatus === 'generating' 
+                ? (language === 'ko' ? '요약 생성 중...' : 'Generating...')
+                : (language === 'ko' ? '✦ AI 자동생성' : '✦ AI Autofill')}
           </button>
         </div>
 
