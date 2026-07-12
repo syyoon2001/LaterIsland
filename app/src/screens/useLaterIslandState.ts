@@ -10,36 +10,46 @@ import type {
   Tab,
   Tag,
 } from '../types';
+import {
+  translations,
+  categoryTranslations,
+  tagTranslations,
+  contentTranslations,
+  aiPoolsEn,
+} from '../data/translations';
 
 function findOrCreateCategory(categoriesArr: Category[], name: string) {
-  const trimmed = (name || '').trim();
+  const trimmed = (name || '').trim().toLowerCase();
   if (!trimmed) return { categories: categoriesArr, id: null as string | null };
-  const existing = categoriesArr.find((c) => c.name.toLowerCase() === trimmed.toLowerCase());
+  const existing = categoriesArr.find((c) => {
+    if (c.name.toLowerCase() === trimmed) return true;
+    const koName = categoryTranslations.ko[c.id]?.toLowerCase();
+    const enName = categoryTranslations.en[c.id]?.toLowerCase();
+    return koName === trimmed || enName === trimmed;
+  });
   if (existing) return { categories: categoriesArr, id: existing.id };
-  const newCat: Category = { id: 'c_' + Date.now() + Math.random().toString(36).slice(2, 6), name: trimmed, createdBy: 'user' };
+  const newCat: Category = { id: 'c_' + Date.now() + Math.random().toString(36).slice(2, 6), name: name.trim(), createdBy: 'user' };
   return { categories: [...categoriesArr, newCat], id: newCat.id };
 }
 
 function findOrCreateTag(tagsArr: Tag[], name: string, usage: number) {
-  const trimmed = (name || '').trim();
+  const trimmed = (name || '').trim().toLowerCase();
   if (!trimmed) return { tags: tagsArr, id: null as string | null };
-  const existing = tagsArr.find((t) => t.name.toLowerCase() === trimmed.toLowerCase());
+  const existing = tagsArr.find((t) => {
+    if (t.name.toLowerCase() === trimmed) return true;
+    const koName = tagTranslations.ko[t.id]?.toLowerCase();
+    const enName = tagTranslations.en[t.id]?.toLowerCase();
+    return koName === trimmed || enName === trimmed;
+  });
   if (existing) {
     const updated = tagsArr.map((t) => (t.id === existing.id ? { ...t, lastUsedAt: usage } : t));
     return { tags: updated, id: existing.id };
   }
-  const newTag: Tag = { id: 't_' + Date.now() + Math.random().toString(36).slice(2, 6), name: trimmed, createdBy: 'user', lastUsedAt: usage };
+  const newTag: Tag = { id: 't_' + Date.now() + Math.random().toString(36).slice(2, 6), name: name.trim(), createdBy: 'user', lastUsedAt: usage };
   return { tags: [...tagsArr, newTag], id: newTag.id };
 }
 
 const emptyForm: ContentForm = { title: '', url: '', summary: '', categoryId: null, tagIds: [] };
-
-const sortLabels: Record<SortOrder, string> = { latest: '최신순', oldest: '오래된순', alpha: '가나다순' };
-
-const confirmMeta: Record<'logout' | 'delete', { title: string; body: string; actionLabel: string; color: string }> = {
-  logout: { title: '로그아웃 하시겠어요?', body: '다시 로그인하면 저장한 콘텐츠를 그대로 볼 수 있어요.', actionLabel: '로그아웃', color: '#6E8C6A' },
-  delete: { title: '계정을 삭제할까요?', body: '삭제하면 저장된 모든 콘텐츠가 영구적으로 사라지며 복구할 수 없어요.', actionLabel: '삭제', color: '#B15C4A' },
-};
 
 const aiPools = [
   { category: '글', tags: ['자기계발', '힐링'], tail: '핵심 내용을 정리한 아티클입니다.' },
@@ -47,6 +57,7 @@ const aiPools = [
   { category: '책', tags: ['자기계발'], tail: '핵심 메시지를 요약한 책입니다.' },
   { category: '드라마', tags: ['힐링'], tail: '줄거리와 감상 포인트를 정리했습니다.' },
 ];
+
 
 export function useLaterIslandState() {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -170,11 +181,12 @@ export function useLaterIslandState() {
   };
 
   const generateAI = () => {
-    const seed = (contents.length + form.title.length) % aiPools.length;
-    const pick = aiPools[seed];
+    const pools = settingsLanguage === 'ko' ? aiPools : aiPoolsEn;
+    const seed = (contents.length + form.title.length) % pools.length;
+    const pick = pools[seed];
     let title = form.title.trim();
     if (!title) {
-      title = form.url ? form.url.replace(/^https?:\/\//, '').split('/')[0] : '제목 없음';
+      title = form.url ? form.url.replace(/^https?:\/\//, '').split('/')[0] : (settingsLanguage === 'ko' ? '제목 없음' : 'Untitled');
     }
     let usage = clickCounter;
     const catRes = findOrCreateCategory(categories, pick.category);
@@ -230,60 +242,88 @@ export function useLaterIslandState() {
 
   // --- derived values (mirrors renderVals in the original prototype) ---
 
+  const translatedCategories = categories.map((cat) => ({
+    ...cat,
+    name: categoryTranslations[settingsLanguage][cat.id] || cat.name,
+  }));
+
+  const translatedTags = tags.map((tag) => ({
+    ...tag,
+    name: tagTranslations[settingsLanguage][tag.id] || tag.name,
+  }));
+
+  const translatedContents = contents.map((c) => {
+    const translation = contentTranslations[settingsLanguage][c.id];
+    return {
+      ...c,
+      title: translation ? translation.title : c.title,
+      summary: translation ? translation.summary : c.summary,
+    };
+  });
+
   const catMap: Record<string, string> = {};
-  categories.forEach((c) => {
+  translatedCategories.forEach((c) => {
     catMap[c.id] = c.name;
   });
   const tagMap: Record<string, string> = {};
-  tags.forEach((t) => {
+  translatedTags.forEach((t) => {
     tagMap[t.id] = t.name;
   });
 
+  const enrichmentCategoryNameFallback = settingsLanguage === 'ko' ? '미분류' : 'Uncategorized';
   const enrich = (c: ContentItem) => ({
     ...c,
-    categoryName: catMap[c.categoryId ?? ''] || '미분류',
+    categoryName: catMap[c.categoryId ?? ''] || enrichmentCategoryNameFallback,
     tagNames: (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean),
     onComplete: () => markDone(c.id),
   });
 
-  const pendingContents = contents.filter((c) => c.status === 'pending').map(enrich);
-  const doneContents = contents.filter((c) => c.status === 'done').map(enrich);
+  const pendingContents = translatedContents.filter((c) => c.status === 'pending').map(enrich);
+  const doneContents = translatedContents.filter((c) => c.status === 'done').map(enrich);
 
-  const categoryRows = categories.map((cat) => ({
-    id: cat.id,
-    name: cat.name,
-    count: contents.filter((c) => c.categoryId === cat.id).length,
-    onSelect: () => selectCategoryFilter(cat.id),
-  }));
-  const selectedCategory = categories.find((c) => c.id === selectedCategoryId) || null;
+  const categoryRows = translatedCategories.map((cat) => {
+    const count = translatedContents.filter((c) => c.categoryId === cat.id).length;
+    return {
+      id: cat.id,
+      name: cat.name,
+      count,
+      onSelect: () => selectCategoryFilter(cat.id),
+    };
+  });
+  const selectedCategory = translatedCategories.find((c) => c.id === selectedCategoryId) || null;
   const categoryFilteredContents = selectedCategoryId
-    ? contents.filter((c) => c.categoryId === selectedCategoryId).map(enrich)
+    ? translatedContents.filter((c) => c.categoryId === selectedCategoryId).map(enrich)
     : [];
 
-  const tagRows = tags
+  const tagRows = translatedTags
     .slice()
     .sort((a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
-    .map((t) => ({
-      id: t.id,
-      name: t.name,
-      count: contents.filter((c) => (c.tagIds || []).includes(t.id)).length,
-      onSelect: () => selectTagFilter(t.id),
-    }));
-  const selectedTag = tags.find((t) => t.id === selectedTagId) || null;
+    .map((t) => {
+      const count = translatedContents.filter((c) => (c.tagIds || []).includes(t.id)).length;
+      return {
+        id: t.id,
+        name: t.name,
+        count,
+        onSelect: () => selectTagFilter(t.id),
+      };
+    });
+  const selectedTag = translatedTags.find((t) => t.id === selectedTagId) || null;
   const tagFilteredContents = selectedTagId
-    ? contents.filter((c) => (c.tagIds || []).includes(selectedTagId)).map(enrich)
+    ? translatedContents.filter((c) => (c.tagIds || []).includes(selectedTagId)).map(enrich)
     : [];
 
-  const formCategoryRows = categories.map((cat) => ({
+  const formCategoryRows = translatedCategories.map((cat) => ({
     id: cat.id,
     name: cat.name,
     bg: form.categoryId === cat.id ? '#6E8C6A' : '#F7F9F2',
     fg: form.categoryId === cat.id ? '#fff' : '#3F5240',
     onSelect: () => selectCategory(cat.id),
   }));
-  const selectedCategoryLabel = form.categoryId ? catMap[form.categoryId] || '선택' : '카테고리를 선택하세요';
+  const selectedCategoryLabel = form.categoryId
+    ? catMap[form.categoryId] || (settingsLanguage === 'ko' ? '선택' : 'Selected')
+    : (translations[settingsLanguage].formCategoryPlaceholder);
 
-  const formTagRows = tags.map((t) => ({
+  const formTagRows = translatedTags.map((t) => ({
     id: t.id,
     name: t.name,
     mark: form.tagIds.includes(t.id) ? '☑' : '☐',
@@ -295,6 +335,26 @@ export function useLaterIslandState() {
     onRemove: () => toggleTagInForm(id),
   }));
 
+  const sortLabels = {
+    latest: translations[settingsLanguage].sortLatest,
+    oldest: translations[settingsLanguage].sortOldest,
+    alpha: translations[settingsLanguage].sortAlpha,
+  };
+
+  const confirmMeta = {
+    logout: {
+      title: translations[settingsLanguage].confirmLogoutTitle,
+      body: translations[settingsLanguage].confirmLogoutBody,
+      actionLabel: translations[settingsLanguage].confirmLogoutAction,
+      color: '#6E8C6A',
+    },
+    delete: {
+      title: translations[settingsLanguage].confirmDeleteTitle,
+      body: translations[settingsLanguage].confirmDeleteBody,
+      actionLabel: translations[settingsLanguage].confirmDeleteAction,
+      color: '#B15C4A',
+    },
+  };
   const activeConfirm = confirmDialog ? confirmMeta[confirmDialog] : null;
 
   return {
@@ -373,3 +433,4 @@ export function useLaterIslandState() {
 }
 
 export type LaterIslandState = ReturnType<typeof useLaterIslandState>;
+

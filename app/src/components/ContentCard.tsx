@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import styles from './ContentCard.module.css';
+import type { Language } from '../types';
 
 export type ContentStatus = 'pending' | 'done';
 
@@ -11,6 +12,7 @@ export interface ContentCardProps {
   tagNames?: string[];
   status?: ContentStatus;
   onComplete?: (() => void) | null;
+  language?: Language;
 }
 
 export function ContentCard({
@@ -21,12 +23,13 @@ export function ContentCard({
   tagNames = [],
   status = 'pending',
   onComplete = null,
+  language = 'ko',
 }: ContentCardProps) {
   const hasSummary = !!summary;
   const hasUrl = !!url;
   const showComplete = status === 'pending' && !!onComplete;
   const isDone = status === 'done';
-  const resolvedCategoryName = categoryName || '기타';
+  const resolvedCategoryName = categoryName || (language === 'ko' ? '기타' : 'Other');
 
   const handleCopy = useCallback(() => {
     if (url) {
@@ -44,10 +47,10 @@ export function ContentCard({
             onClick={onComplete ?? undefined}
             className={styles.completeButton}
           >
-            완료
+            {language === 'ko' ? '완료' : 'Mark Done'}
           </button>
         )}
-        {isDone && <div className={styles.doneBadge}>완료됨</div>}
+        {isDone && <div className={styles.doneBadge}>{language === 'ko' ? '완료됨' : 'Done'}</div>}
       </div>
 
       <div className={styles.chipsRow}>
@@ -64,12 +67,12 @@ export function ContentCard({
       {hasUrl && (
         <div className={styles.linkRow}>
           <a href={url} target="_blank" rel="noopener" className={styles.link}>
-            바로가기 ↗
+            {language === 'ko' ? '바로가기 ↗' : 'View Link ↗'}
           </a>
           <button
             type="button"
             onClick={handleCopy}
-            title="링크 복사"
+            title={language === 'ko' ? '링크 복사' : 'Copy Link'}
             className={styles.copyButton}
           >
             <svg
@@ -91,3 +94,4 @@ export function ContentCard({
     </div>
   );
 }
+

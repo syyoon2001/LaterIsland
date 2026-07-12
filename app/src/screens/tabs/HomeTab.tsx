@@ -1,16 +1,21 @@
 import { ContentList } from './ContentList';
-import type { EnrichedContent } from '../../types';
+import type { EnrichedContent, Language } from '../../types';
+import { translations } from '../../data/translations';
 
 interface HomeTabProps {
   pendingContents: EnrichedContent[];
+  language: Language;
 }
 
-export function HomeTab({ pendingContents }: HomeTabProps) {
+export function HomeTab({ pendingContents, language }: HomeTabProps) {
+  const t = translations[language];
+
   return (
-    <div data-screen-label="홈">
+    <div data-screen-label={language === 'ko' ? '홈' : 'Home'}>
       <div style={{ padding: 20 }}>
-        <ContentList items={pendingContents} emptyMessage="아직 저장한 콘텐츠가 없어요" />
+        <ContentList items={pendingContents} emptyMessage={t.homeEmpty} language={language} />
       </div>
     </div>
   );
 }
+

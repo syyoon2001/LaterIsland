@@ -1,6 +1,7 @@
 import { BackButton } from '../../components/BackButton';
 import { ContentList } from './ContentList';
-import type { EnrichedContent, Tag } from '../../types';
+import type { EnrichedContent, Tag, Language } from '../../types';
+import { translations } from '../../data/translations';
 
 interface TagRow {
   id: string;
@@ -14,11 +15,14 @@ interface TagsTabProps {
   selectedTag: Tag | null;
   tagFilteredContents: EnrichedContent[];
   backFromTag: () => void;
+  language: Language;
 }
 
-export function TagsTab({ tagRows, selectedTag, tagFilteredContents, backFromTag }: TagsTabProps) {
+export function TagsTab({ tagRows, selectedTag, tagFilteredContents, backFromTag, language }: TagsTabProps) {
+  const t = translations[language];
+
   return (
-    <div data-screen-label="태그 모음">
+    <div data-screen-label={language === 'ko' ? '태그 모음' : 'Tags'}>
       <div style={{ padding: '20px 20px 0' }}>
         {selectedTag && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
@@ -45,7 +49,7 @@ export function TagsTab({ tagRows, selectedTag, tagFilteredContents, backFromTag
               >
                 <div style={{ fontSize: 15, fontWeight: 600 }}>#{tag.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ fontSize: 12, opacity: 0.5 }}>{tag.count}개</div>
+                  <div style={{ fontSize: 12, opacity: 0.5 }}>{t.itemsCount(tag.count)}</div>
                   <div style={{ fontSize: 14 }}>→</div>
                 </div>
               </div>
@@ -53,8 +57,9 @@ export function TagsTab({ tagRows, selectedTag, tagFilteredContents, backFromTag
           </div>
         )}
 
-        {selectedTag && <ContentList items={tagFilteredContents} emptyMessage="해당 태그의 콘텐츠가 없어요" />}
+        {selectedTag && <ContentList items={tagFilteredContents} emptyMessage={t.tagsEmpty} language={language} />}
       </div>
     </div>
   );
 }
+

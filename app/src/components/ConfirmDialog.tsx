@@ -1,3 +1,6 @@
+import type { Language } from '../types';
+import { translations } from '../data/translations';
+
 export interface ConfirmDialogProps {
   title: string;
   body: string;
@@ -5,9 +8,12 @@ export interface ConfirmDialogProps {
   color: string;
   onCancel: () => void;
   onConfirm: () => void;
+  language: Language;
 }
 
-export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onConfirm }: ConfirmDialogProps) {
+export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onConfirm, language }: ConfirmDialogProps) {
+  const t = translations[language];
+
   return (
     <div
       style={{
@@ -48,7 +54,7 @@ export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onCon
               fontFamily: 'inherit',
             }}
           >
-            취소
+            {t.confirmCancel}
           </button>
           <button
             type="button"
@@ -73,3 +79,4 @@ export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onCon
     </div>
   );
 }
+

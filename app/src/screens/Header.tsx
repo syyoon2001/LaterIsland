@@ -1,5 +1,6 @@
 import styles from '../components/IconButton.module.css';
-import type { SortOrder } from '../types';
+import type { SortOrder, Language } from '../types';
+import { translations } from '../data/translations';
 
 interface HeaderProps {
   searchOpen: boolean;
@@ -19,6 +20,7 @@ interface HeaderProps {
   selectSort: (order: SortOrder) => void;
 
   goSettings: () => void;
+  language: Language;
 }
 
 const sortOptionStyle = (active: boolean) => ({
@@ -47,7 +49,10 @@ export function Header({
   sortOrderLabel,
   selectSort,
   goSettings,
+  language,
 }: HeaderProps) {
+  const t = translations[language];
+
   return (
     <>
       <div
@@ -72,13 +77,13 @@ export function Header({
           <img src="/assets/logo-wordmark.png" alt="Later Island" style={{ height: 22, objectFit: 'contain' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <button type="button" onClick={toggleSearch} aria-label="검색" className={styles.iconButton} style={{ width: 36, height: 36 }}>
+          <button type="button" onClick={toggleSearch} aria-label={t.searchPlaceholder} className={styles.iconButton} style={{ width: 36, height: 36 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </button>
-          <button type="button" onClick={toggleMenu} aria-label="메뉴" className={styles.iconButton} style={{ width: 36, height: 36 }}>
+          <button type="button" onClick={toggleMenu} aria-label={t.settings} className={styles.iconButton} style={{ width: 36, height: 36 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
               <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
@@ -112,7 +117,7 @@ export function Header({
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="검색"
+              placeholder={t.searchPlaceholder}
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
@@ -141,7 +146,7 @@ export function Header({
                 fontFamily: 'inherit',
               }}
             >
-              ✦ AI 검색
+              {t.searchAi}
             </button>
           </div>
         </>
@@ -171,29 +176,29 @@ export function Header({
               style={{ ...menuRowStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 'auto', height: 'auto' }}
             >
               <span>
-                정렬 기준 <span style={{ opacity: 0.5, fontWeight: 400 }}>· {sortOrderLabel}</span>
+                {t.sortBy} <span style={{ opacity: 0.5, fontWeight: 400 }}>· {sortOrderLabel}</span>
               </span>
               <span style={{ fontSize: 11 }}>{sortSubmenuOpen ? '▲' : '▼'}</span>
             </div>
             {sortSubmenuOpen && (
               <div style={{ display: 'flex', flexDirection: 'column', padding: '2px 4px 2px 14px' }}>
                 <div onClick={() => selectSort('latest')} className={styles.iconButton} style={{ ...sortOptionStyle(sortOrder === 'latest'), width: 'auto', height: 'auto' }}>
-                  최신순
+                  {t.sortLatest}
                 </div>
                 <div onClick={() => selectSort('oldest')} className={styles.iconButton} style={{ ...sortOptionStyle(sortOrder === 'oldest'), width: 'auto', height: 'auto' }}>
-                  오래된순
+                  {t.sortOldest}
                 </div>
                 <div onClick={() => selectSort('alpha')} className={styles.iconButton} style={{ ...sortOptionStyle(sortOrder === 'alpha'), width: 'auto', height: 'auto' }}>
-                  가나다순
+                  {t.sortAlpha}
                 </div>
               </div>
             )}
             <div onClick={closeMenu} className={styles.iconButton} style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}>
-              편집
+              {t.edit}
             </div>
             <div style={{ height: 1, background: 'rgba(63,82,64,0.12)', margin: '4px 6px' }} />
             <div onClick={goSettings} className={styles.iconButton} style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}>
-              설정
+              {t.settings}
             </div>
           </div>
         </>
@@ -201,3 +206,4 @@ export function Header({
     </>
   );
 }
+

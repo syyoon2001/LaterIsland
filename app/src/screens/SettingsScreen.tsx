@@ -1,8 +1,8 @@
 import { BackButton } from '../components/BackButton';
 import type { Language } from '../types';
+import { translations } from '../data/translations';
 
 interface SettingsScreenProps {
-  profileName: string;
   settingsLanguage: Language;
   setSettingsLanguage: (lang: Language) => void;
   backFromSettings: () => void;
@@ -11,7 +11,6 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({
-  profileName,
   settingsLanguage,
   setSettingsLanguage,
   backFromSettings,
@@ -20,6 +19,7 @@ export function SettingsScreen({
 }: SettingsScreenProps) {
   const isKo = settingsLanguage === 'ko';
   const isEn = settingsLanguage === 'en';
+  const t = translations[settingsLanguage];
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
@@ -36,10 +36,11 @@ export function SettingsScreen({
           padding: '0 16px',
           borderBottom: '1px solid rgba(63,82,64,0.12)',
           background: '#E6F1E3',
+          zIndex: 2,
         }}
       >
         <BackButton onClick={backFromSettings} size={36} />
-        <div style={{ fontSize: 18, fontWeight: 700 }}>설정</div>
+        <div style={{ fontSize: 18, fontWeight: 700 }}>{t.settings}</div>
       </div>
 
       <div
@@ -67,11 +68,11 @@ export function SettingsScreen({
               flexShrink: 0,
             }}
           />
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{profileName}</div>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>{t.profileName}</div>
         </div>
 
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, marginBottom: 10 }}>언어</div>
+          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, marginBottom: 10 }}>{t.settingsLanguageLabel}</div>
           <div style={{ display: 'flex', border: '1px solid rgba(63,82,64,0.25)', borderRadius: 10, overflow: 'hidden' }}>
             <div
               onClick={() => setSettingsLanguage('ko')}
@@ -118,16 +119,17 @@ export function SettingsScreen({
               cursor: 'pointer',
             }}
           >
-            로그아웃
+            {t.logout}
           </div>
           <div
             onClick={openDeleteConfirm}
             style={{ padding: '16px 4px', fontSize: 14, fontWeight: 600, cursor: 'pointer', color: '#B15C4A' }}
           >
-            계정 삭제
+            {t.deleteAccount}
           </div>
         </div>
       </div>
     </div>
   );
 }
+

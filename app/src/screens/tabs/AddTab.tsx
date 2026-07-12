@@ -1,4 +1,5 @@
-import type { ContentForm } from '../../types';
+import type { ContentForm, Language } from '../../types';
+import { translations } from '../../data/translations';
 
 interface FormCategoryRow {
   id: string;
@@ -45,6 +46,7 @@ interface AddTabProps {
 
   generateAI: () => void;
   saveContent: () => void;
+  language: Language;
 }
 
 const inputStyle = {
@@ -82,43 +84,46 @@ export function AddTab({
   addNewTag,
   generateAI,
   saveContent,
+  language,
 }: AddTabProps) {
+  const t = translations[language];
+
   return (
-    <div data-screen-label="콘텐츠 추가">
+    <div data-screen-label={language === 'ko' ? '콘텐츠 추가' : 'Add Content'}>
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
-          <label style={labelStyle}>제목 *</label>
+          <label style={labelStyle}>{t.formTitleLabel}</label>
           <input
             value={form.title}
             onChange={(e) => setFormTitle(e.target.value)}
-            placeholder="제목을 입력하세요"
+            placeholder={t.formTitlePlaceholder}
             style={inputStyle}
           />
         </div>
 
         <div>
-          <label style={labelStyle}>링크 (선택)</label>
+          <label style={labelStyle}>{t.formLinkLabel}</label>
           <input
             value={form.url}
             onChange={(e) => setFormUrl(e.target.value)}
-            placeholder="https://..."
+            placeholder={t.formLinkPlaceholder}
             style={inputStyle}
           />
         </div>
 
         <div>
-          <label style={labelStyle}>요약 (선택)</label>
+          <label style={labelStyle}>{t.formSummaryLabel}</label>
           <textarea
             value={form.summary}
             onChange={(e) => setFormSummary(e.target.value)}
-            placeholder="나중에 참고할 요약을 남겨보세요"
+            placeholder={t.formSummaryPlaceholder}
             rows={3}
             style={{ ...inputStyle, resize: 'none' }}
           />
         </div>
 
         <div>
-          <label style={labelStyle}>카테고리 (형식)</label>
+          <label style={labelStyle}>{t.formCategoryLabel}</label>
           <div
             onClick={toggleCategoryDropdown}
             style={{
@@ -167,7 +172,7 @@ export function AddTab({
                 <input
                   value={newCategoryInput}
                   onChange={(e) => setNewCategoryInput(e.target.value)}
-                  placeholder="+ 새 카테고리"
+                  placeholder={t.formCategoryAddNew}
                   style={{
                     flex: 1,
                     boxSizing: 'border-box',
@@ -195,7 +200,7 @@ export function AddTab({
                     fontFamily: 'inherit',
                   }}
                 >
-                  추가
+                  {t.formCategoryAddBtn}
                 </button>
               </div>
             </div>
@@ -203,7 +208,7 @@ export function AddTab({
         </div>
 
         <div>
-          <label style={labelStyle}>태그 (주제)</label>
+          <label style={labelStyle}>{t.formTagLabel}</label>
           {selectedFormTagChips.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
               {selectedFormTagChips.map((chip) => (
@@ -240,7 +245,7 @@ export function AddTab({
               cursor: 'pointer',
             }}
           >
-            태그 선택 / 추가
+            {t.formTagSelectPlaceholder}
           </div>
           {tagDropdownOpen && (
             <div
@@ -278,7 +283,7 @@ export function AddTab({
                 <input
                   value={newTagInput}
                   onChange={(e) => setNewTagInput(e.target.value)}
-                  placeholder="+ 새 태그"
+                  placeholder={t.formTagAddNew}
                   style={{
                     flex: 1,
                     boxSizing: 'border-box',
@@ -306,7 +311,7 @@ export function AddTab({
                     fontFamily: 'inherit',
                   }}
                 >
-                  추가
+                  {t.formTagAddBtn}
                 </button>
               </div>
             </div>
@@ -329,7 +334,7 @@ export function AddTab({
             fontFamily: 'inherit',
           }}
         >
-          ✦ AI 자동생성
+          {t.formAiAutofill}
         </button>
 
         <button
@@ -348,9 +353,10 @@ export function AddTab({
             fontFamily: 'inherit',
           }}
         >
-          저장
+          {t.formSave}
         </button>
       </div>
     </div>
   );
 }
+

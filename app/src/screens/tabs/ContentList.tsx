@@ -1,12 +1,13 @@
 import { ContentCard } from '../../components/ContentCard';
-import type { EnrichedContent } from '../../types';
+import type { EnrichedContent, Language } from '../../types';
 
 interface ContentListProps {
   items: EnrichedContent[];
   emptyMessage: string;
+  language: Language;
 }
 
-export function ContentList({ items, emptyMessage }: ContentListProps) {
+export function ContentList({ items, emptyMessage, language }: ContentListProps) {
   if (items.length === 0) {
     return (
       <div style={{ padding: '60px 0', textAlign: 'center', opacity: 0.4, fontSize: 13 }}>{emptyMessage}</div>
@@ -24,8 +25,10 @@ export function ContentList({ items, emptyMessage }: ContentListProps) {
           tagNames={item.tagNames}
           status={item.status}
           onComplete={item.onComplete}
+          language={language}
         />
       ))}
     </div>
   );
 }
+

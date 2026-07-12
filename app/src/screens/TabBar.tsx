@@ -1,19 +1,24 @@
-import type { Tab } from '../types';
+import type { Tab, Language } from '../types';
+import { translations } from '../data/translations';
 
 interface TabBarProps {
   activeTab: Tab;
   setTab: (tab: Tab) => void;
+  language: Language;
 }
 
-const tabs: { id: Tab; label: string }[] = [
-  { id: 'home', label: '홈' },
-  { id: 'category', label: '카테고리' },
-  { id: 'add', label: '추가' },
-  { id: 'tags', label: '태그' },
-  { id: 'done', label: '완료' },
-];
+const tabIds: Tab[] = ['home', 'category', 'add', 'tags', 'done'];
 
-export function TabBar({ activeTab, setTab }: TabBarProps) {
+export function TabBar({ activeTab, setTab, language }: TabBarProps) {
+  const t = translations[language];
+  const tabLabels: Record<Tab, string> = {
+    home: t.tabHome,
+    category: t.tabCategory,
+    add: t.tabAdd,
+    tags: t.tabTags,
+    done: t.tabDone,
+  };
+
   return (
     <div
       style={{
@@ -27,13 +32,13 @@ export function TabBar({ activeTab, setTab }: TabBarProps) {
         display: 'flex',
       }}
     >
-      {tabs.map((tab) => {
-        const active = activeTab === tab.id;
+      {tabIds.map((tabId) => {
+        const active = activeTab === tabId;
         return (
           <div
-            key={tab.id}
-            data-testid={`tab-${tab.id}`}
-            onClick={() => setTab(tab.id)}
+            key={tabId}
+            data-testid={`tab-${tabId}`}
+            onClick={() => setTab(tabId)}
             style={{
               flex: 1,
               display: 'flex',
@@ -53,7 +58,7 @@ export function TabBar({ activeTab, setTab }: TabBarProps) {
               }}
             />
             <div style={{ fontSize: 10, fontWeight: active ? 700 : 400, color: active ? '#6E8C6A' : '#3F5240' }}>
-              {tab.label}
+              {tabLabels[tabId]}
             </div>
           </div>
         );
@@ -61,3 +66,4 @@ export function TabBar({ activeTab, setTab }: TabBarProps) {
     </div>
   );
 }
+

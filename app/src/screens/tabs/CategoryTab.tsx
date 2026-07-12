@@ -1,6 +1,7 @@
 import { BackButton } from '../../components/BackButton';
 import { ContentList } from './ContentList';
-import type { Category, EnrichedContent } from '../../types';
+import type { Category, EnrichedContent, Language } from '../../types';
+import { translations } from '../../data/translations';
 
 interface CategoryRow {
   id: string;
@@ -14,6 +15,7 @@ interface CategoryTabProps {
   selectedCategory: Category | null;
   categoryFilteredContents: EnrichedContent[];
   backFromCategory: () => void;
+  language: Language;
 }
 
 export function CategoryTab({
@@ -21,9 +23,12 @@ export function CategoryTab({
   selectedCategory,
   categoryFilteredContents,
   backFromCategory,
+  language,
 }: CategoryTabProps) {
+  const t = translations[language];
+
   return (
-    <div data-screen-label="카테고리">
+    <div data-screen-label={language === 'ko' ? '카테고리' : 'Category'}>
       <div style={{ padding: 20 }}>
         {selectedCategory && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
@@ -49,7 +54,7 @@ export function CategoryTab({
               >
                 <div style={{ fontSize: 15, fontWeight: 600 }}>{cat.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ fontSize: 12, opacity: 0.5 }}>{cat.count}개</div>
+                  <div style={{ fontSize: 12, opacity: 0.5 }}>{t.itemsCount(cat.count)}</div>
                   <div style={{ fontSize: 14 }}>→</div>
                 </div>
               </div>
@@ -58,9 +63,10 @@ export function CategoryTab({
         )}
 
         {selectedCategory && (
-          <ContentList items={categoryFilteredContents} emptyMessage="해당 카테고리의 콘텐츠가 없어요" />
+          <ContentList items={categoryFilteredContents} emptyMessage={t.categoryEmpty} language={language} />
         )}
       </div>
     </div>
   );
 }
+

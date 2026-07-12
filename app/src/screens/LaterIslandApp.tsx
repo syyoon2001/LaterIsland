@@ -36,16 +36,18 @@ export function LaterIslandApp() {
             sortOrderLabel={s.sortOrderLabel}
             selectSort={s.selectSort}
             goSettings={s.goSettings}
+            language={s.settingsLanguage}
           />
 
           <div id={SCROLL_EL_ID} style={{ position: 'absolute', top: 76, left: 0, right: 0, bottom: 76, overflowY: 'auto' }}>
-            {s.activeTab === 'home' && <HomeTab pendingContents={s.pendingContents} />}
+            {s.activeTab === 'home' && <HomeTab pendingContents={s.pendingContents} language={s.settingsLanguage} />}
             {s.activeTab === 'category' && (
               <CategoryTab
                 categoryRows={s.categoryRows}
                 selectedCategory={s.selectedCategory}
                 categoryFilteredContents={s.categoryFilteredContents}
                 backFromCategory={s.backFromCategory}
+                language={s.settingsLanguage}
               />
             )}
             {s.activeTab === 'add' && (
@@ -70,6 +72,7 @@ export function LaterIslandApp() {
                 addNewTag={s.addNewTag}
                 generateAI={s.generateAI}
                 saveContent={s.saveContent}
+                language={s.settingsLanguage}
               />
             )}
             {s.activeTab === 'tags' && (
@@ -78,9 +81,10 @@ export function LaterIslandApp() {
                 selectedTag={s.selectedTag}
                 tagFilteredContents={s.tagFilteredContents}
                 backFromTag={s.backFromTag}
+                language={s.settingsLanguage}
               />
             )}
-            {s.activeTab === 'done' && <DoneTab doneContents={s.doneContents} />}
+            {s.activeTab === 'done' && <DoneTab doneContents={s.doneContents} language={s.settingsLanguage} />}
           </div>
 
           <div
@@ -97,13 +101,12 @@ export function LaterIslandApp() {
             }}
           />
 
-          <TabBar activeTab={s.activeTab} setTab={s.setTab} />
+          <TabBar activeTab={s.activeTab} setTab={s.setTab} language={s.settingsLanguage} />
         </div>
       )}
 
       {s.showSettings && (
         <SettingsScreen
-          profileName="나중에"
           settingsLanguage={s.settingsLanguage}
           setSettingsLanguage={s.setSettingsLanguage}
           backFromSettings={s.backFromSettings}
@@ -120,8 +123,10 @@ export function LaterIslandApp() {
           color={s.activeConfirm.color}
           onCancel={s.closeConfirm}
           onConfirm={s.closeConfirm}
+          language={s.settingsLanguage}
         />
       )}
     </PhoneFrame>
   );
+
 }
