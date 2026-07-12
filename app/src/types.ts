@@ -4,6 +4,10 @@ export interface Category {
   id: string;
   name: string;
   createdBy: CreatedBy;
+  // True once the category has been deleted from the UI (Firestore keeps the
+  // doc around, soft-deleted, purely so items that referenced it can still
+  // resolve a category name). Never shown/selectable once true.
+  isDeleted?: boolean;
 }
 
 export interface Tag {
@@ -11,6 +15,7 @@ export interface Tag {
   name: string;
   createdBy: CreatedBy;
   lastUsedAt: number;
+  isDeleted?: boolean;
 }
 
 export type ContentStatus = 'pending' | 'done' | 'trash';
@@ -46,6 +51,8 @@ export interface DynamicConfirmDialog {
   actionLabel: string;
   color: string;
   onConfirm: () => void;
+  error?: string;
+  confirming?: boolean;
 }
 
 export type ConfirmDialogType = DynamicConfirmDialog | null;

@@ -1,5 +1,27 @@
 import { useState, useEffect } from 'react';
 
+import { deleteCurrentUser, getAuthErrorMessage, signOutUser, subscribeToAuthState } from '../lib/auth';
+import {
+  addCategory,
+  addItem,
+  addTag,
+  bumpTagUsage,
+  clearAllUserData,
+  deleteItemPermanently,
+  moveCategoryItemsToTrash,
+  removeTagFromActiveItems,
+  renameCategory,
+  renameTag,
+  setItemDeleted,
+  setItemDone,
+  softDeleteCategory,
+  softDeleteTag,
+  subscribeCategories,
+  subscribeItems,
+  subscribeTags,
+  updateItemFields,
+  type ItemFields,
+} from '../lib/firestore';
 import type {
   Category,
   ConfirmDialogType,
@@ -18,35 +40,39 @@ import {
   aiPoolsEn,
 } from '../data/translations';
 
-function findOrCreateCategory(categoriesArr: Category[], name: string) {
+// Finds an existing (non-deleted) category by name, or creates one in
+// Firestore. Returns its id, or null if `name` is blank.
+async function findOrCreateCategoryFs(uid: string, existing: Category[], name: string): Promise<string | null> {
   const trimmed = (name || '').trim().toLowerCase();
-  if (!trimmed) return { categories: categoriesArr, id: null as string | null };
-  const existing = categoriesArr.find((c) => {
+  if (!trimmed) return null;
+  const match = existing.find((c) => {
+    if (c.isDeleted) return false;
     if (c.name.toLowerCase() === trimmed) return true;
     const koName = categoryTranslations.ko[c.id]?.toLowerCase();
     const enName = categoryTranslations.en[c.id]?.toLowerCase();
     return koName === trimmed || enName === trimmed;
   });
-  if (existing) return { categories: categoriesArr, id: existing.id };
-  const newCat: Category = { id: 'c_' + Date.now() + Math.random().toString(36).slice(2, 6), name: name.trim(), createdBy: 'user' };
-  return { categories: [...categoriesArr, newCat], id: newCat.id };
+  if (match) return match.id;
+  return addCategory(uid, name.trim());
 }
 
-function findOrCreateTag(tagsArr: Tag[], name: string, usage: number) {
+// Same idea for tags; also bumps recency usage on an existing match so the
+// "recently used" tag ordering stays meaningful.
+async function findOrCreateTagFs(uid: string, existing: Tag[], name: string, usage: number): Promise<string | null> {
   const trimmed = (name || '').trim().toLowerCase();
-  if (!trimmed) return { tags: tagsArr, id: null as string | null };
-  const existing = tagsArr.find((t) => {
+  if (!trimmed) return null;
+  const match = existing.find((t) => {
+    if (t.isDeleted) return false;
     if (t.name.toLowerCase() === trimmed) return true;
     const koName = tagTranslations.ko[t.id]?.toLowerCase();
     const enName = tagTranslations.en[t.id]?.toLowerCase();
     return koName === trimmed || enName === trimmed;
   });
-  if (existing) {
-    const updated = tagsArr.map((t) => (t.id === existing.id ? { ...t, lastUsedAt: usage } : t));
-    return { tags: updated, id: existing.id };
+  if (match) {
+    bumpTagUsage(uid, match.id, usage).catch(console.error);
+    return match.id;
   }
-  const newTag: Tag = { id: 't_' + Date.now() + Math.random().toString(36).slice(2, 6), name: name.trim(), createdBy: 'user', lastUsedAt: usage };
-  return { tags: [...tagsArr, newTag], id: newTag.id };
+  return addTag(uid, name.trim(), usage);
 }
 
 const emptyForm: ContentForm = { title: '', url: '', summary: '', categoryId: null, tagIds: [] };
@@ -70,11 +96,6 @@ export function useLaterIslandState() {
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogType>(null);
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [contents, setContents] = useState<ContentItem[]>([]);
-  const [clickCounter, setClickCounter] = useState(6);
-
   const [form, setForm] = useState<ContentForm>(emptyForm);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [newCategoryInput, setNewCategoryInput] = useState('');
@@ -88,7 +109,66 @@ export function useLaterIslandState() {
   const [editingContentId, setEditingContentId] = useState<string | null>(null);
   const [previousTab, setPreviousTab] = useState<Tab | null>(null);
   const [showTrash, setShowTrash] = useState(false);
-  const [trashContents, setTrashContents] = useState<ContentItem[]>([]);
+
+  // Current Firebase user's profile (works for both email/password signups
+  // with a display name and Google sign-ins, which Firebase auto-fills).
+  const [userDisplayName, setUserDisplayName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [uid, setUid] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToAuthState((user) => {
+      setUserDisplayName(user?.displayName ?? '');
+      setUserEmail(user?.email ?? '');
+      setUid(user?.uid ?? null);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Firestore-backed data: items (all statuses — trash is just isDeleted:true
+  // on the same collection), categories, and tags. `rawCategories`/`rawTags`
+  // include soft-deleted docs (kept only so old items can still resolve a
+  // name); everything UI-facing filters those out below.
+  const [contents, setContents] = useState<ContentItem[]>([]);
+  const [rawCategories, setRawCategories] = useState<Category[]>([]);
+  const [rawTags, setRawTags] = useState<Tag[]>([]);
+  const [itemsLoaded, setItemsLoaded] = useState(false);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [tagsLoaded, setTagsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!uid) {
+      setContents([]);
+      setRawCategories([]);
+      setRawTags([]);
+      setItemsLoaded(false);
+      setCategoriesLoaded(false);
+      setTagsLoaded(false);
+      return;
+    }
+    setItemsLoaded(false);
+    setCategoriesLoaded(false);
+    setTagsLoaded(false);
+    const unsubItems = subscribeItems(uid, (items) => {
+      setContents(items);
+      setItemsLoaded(true);
+    });
+    const unsubCategories = subscribeCategories(uid, (cats) => {
+      setRawCategories(cats);
+      setCategoriesLoaded(true);
+    });
+    const unsubTags = subscribeTags(uid, (tgs) => {
+      setRawTags(tgs);
+      setTagsLoaded(true);
+    });
+    return () => {
+      unsubItems();
+      unsubCategories();
+      unsubTags();
+    };
+  }, [uid]);
+
+  const dataLoading = !uid || !itemsLoaded || !categoriesLoaded || !tagsLoaded;
 
   useEffect(() => {
     const handleJump = (e: any) => {
@@ -110,62 +190,43 @@ export function useLaterIslandState() {
     return () => window.removeEventListener('simulation-jump', handleJump);
   }, []);
 
+  // Dev-only test tools (SimulationPanel). Write straight to Firestore so
+  // they exercise the same path as the real UI.
   useEffect(() => {
     const handleClearAll = () => {
-      setCategories([]);
-      setTags([]);
-      setContents([]);
-      setTrashContents([]);
+      if (uid) clearAllUserData(uid).catch(console.error);
     };
     window.addEventListener('simulation-clear-all', handleClearAll);
     return () => window.removeEventListener('simulation-clear-all', handleClearAll);
-  }, []);
+  }, [uid]);
 
   useEffect(() => {
-    const handleGenerateDummy = () => {
+    const handleGenerateDummy = async () => {
+      if (!uid) return;
       const titles = ['React 19 Deep Dive', 'Weekend Vlog', 'Clean Code Practices', 'Best Design Systems', 'My Finance Journey'];
       const summaries = ['A great article on React', 'Relaxing weekend trip', 'How to write better code', 'Analysis of top design systems', 'Tips for saving money'];
       const catNames = ['Dev', 'Life', 'Dev', 'Design', 'Finance'];
       const tagNamess = [['Frontend', 'React'], ['Vlog'], ['CleanCode'], ['Design'], ['Finance', 'Tips']];
-      
-      setCategories((prevCats) => {
-        let currentCats = [...prevCats];
-        setTags((prevTags) => {
-          let currentTags = [...prevTags];
-          const newItems: ContentItem[] = [];
-          
-          for (let i = 0; i < 5; i++) {
-             const { categories: nextCats, id: cId } = findOrCreateCategory(currentCats, catNames[i]);
-             currentCats = nextCats;
-             
-             const tIds: string[] = [];
-             for (const tName of tagNamess[i]) {
-                const { tags: nextTags, id: tId } = findOrCreateTag(currentTags, tName, Date.now() + i);
-                currentTags = nextTags;
-                if (tId) tIds.push(tId);
-             }
-             
-             newItems.push({
-               id: 'dummy_' + Date.now() + Math.random().toString(36).slice(2, 6),
-               sourceType: 'manual',
-               title: titles[i],
-               url: 'https://example.com/dummy' + i,
-               summary: summaries[i],
-               categoryId: cId,
-               tagIds: tIds,
-               status: 'pending'
-             });
-          }
-          
-          setContents((prevC) => [...newItems, ...prevC]);
-          return currentTags;
+
+      for (let i = 0; i < 5; i++) {
+        const categoryId = await findOrCreateCategoryFs(uid, rawCategories, catNames[i]);
+        const tagIds: string[] = [];
+        for (const tName of tagNamess[i]) {
+          const tid = await findOrCreateTagFs(uid, rawTags, tName, Date.now() + i);
+          if (tid) tagIds.push(tid);
+        }
+        await addItem(uid, {
+          title: titles[i],
+          url: 'https://example.com/dummy' + i,
+          summary: summaries[i],
+          categoryId,
+          tagIds,
         });
-        return currentCats;
-      });
+      }
     };
     window.addEventListener('simulation-generate-dummy', handleGenerateDummy);
     return () => window.removeEventListener('simulation-generate-dummy', handleGenerateDummy);
-  }, []);
+  }, [uid, rawCategories, rawTags]);
 
   useEffect(() => {
     window.dispatchEvent(
@@ -224,7 +285,10 @@ export function useLaterIslandState() {
         body: translations[settingsLanguage].confirmLogoutBody,
         actionLabel: translations[settingsLanguage].confirmLogoutAction,
         color: '#6E8C6A',
-        onConfirm: () => setConfirmDialog(null),
+        onConfirm: () => {
+          signOutUser();
+          setConfirmDialog(null);
+        },
       });
     } else {
       setConfirmDialog({
@@ -232,7 +296,32 @@ export function useLaterIslandState() {
         body: translations[settingsLanguage].confirmDeleteBody,
         actionLabel: translations[settingsLanguage].confirmDeleteAction,
         color: '#B15C4A',
-        onConfirm: () => setConfirmDialog(null),
+        onConfirm: async () => {
+          setConfirmDialog((prev) => (prev ? { ...prev, confirming: true, error: undefined } : prev));
+          try {
+            await deleteCurrentUser();
+            // Success: Firebase signs the user out as part of deletion, and the
+            // app-level onAuthStateChanged listener (src/App.tsx) picks that up
+            // and switches the screen to login automatically.
+            setConfirmDialog(null);
+          } catch (err: any) {
+            if (err?.code === 'auth/requires-recent-login') {
+              setConfirmDialog((prev) =>
+                prev ? { ...prev, confirming: false, error: translations[settingsLanguage].reauthRequired } : prev
+              );
+              // Give the user a moment to read the guidance, then sign them out
+              // so they land back on the login screen to re-authenticate.
+              window.setTimeout(() => {
+                signOutUser();
+                setConfirmDialog(null);
+              }, 1800);
+            } else {
+              setConfirmDialog((prev) =>
+                prev ? { ...prev, confirming: false, error: getAuthErrorMessage(err, settingsLanguage) } : prev
+              );
+            }
+          }
+        },
       });
     }
   };
@@ -246,19 +335,17 @@ export function useLaterIslandState() {
     setCategoryDropdownOpen(false);
   };
 
-  const addNewCategory = () => {
-    const { categories: nextCategories, id } = findOrCreateCategory(categories, newCategoryInput);
+  const addNewCategory = async () => {
+    if (!uid) return;
+    const id = await findOrCreateCategoryFs(uid, rawCategories, newCategoryInput);
     if (!id) return;
-    setCategories(nextCategories);
     setForm((prev) => ({ ...prev, categoryId: id }));
     setNewCategoryInput('');
     setCategoryDropdownOpen(false);
   };
 
   const toggleTagInForm = (id: string) => {
-    const usage = clickCounter + 1;
-    setTags((prev) => prev.map((t) => (t.id === id ? { ...t, lastUsedAt: usage } : t)));
-    setClickCounter(usage);
+    if (uid) bumpTagUsage(uid, id, Date.now()).catch(console.error);
     setForm((prev) => {
       const has = prev.tagIds.includes(id);
       const tagIds = has ? prev.tagIds.filter((x) => x !== id) : [...prev.tagIds, id];
@@ -266,17 +353,16 @@ export function useLaterIslandState() {
     });
   };
 
-  const addNewTag = () => {
-    const usage = clickCounter + 1;
-    const { tags: nextTags, id } = findOrCreateTag(tags, newTagInput, usage);
+  const addNewTag = async () => {
+    if (!uid) return;
+    const id = await findOrCreateTagFs(uid, rawTags, newTagInput, Date.now());
     if (!id) return;
-    setTags(nextTags);
-    setClickCounter(usage);
     setForm((prev) => ({ ...prev, tagIds: prev.tagIds.includes(id) ? prev.tagIds : [...prev.tagIds, id] }));
     setNewTagInput('');
   };
 
-  const generateAI = () => {
+  const generateAI = async () => {
+    if (!uid) return;
     const pools = settingsLanguage === 'ko' ? aiPools : aiPoolsEn;
     const seed = (contents.length + form.title.length) % pools.length;
     const pick = pools[seed];
@@ -284,59 +370,34 @@ export function useLaterIslandState() {
     if (!title) {
       title = form.url ? form.url.replace(/^https?:\/\//, '').split('/')[0] : (settingsLanguage === 'ko' ? '제목 없음' : 'Untitled');
     }
-    let usage = clickCounter;
-    const catRes = findOrCreateCategory(categories, pick.category);
-    let nextTags = tags;
+    const categoryId = await findOrCreateCategoryFs(uid, rawCategories, pick.category);
     const tagIds: string[] = [];
-    pick.tags.forEach((tn) => {
-      usage += 1;
-      const tagRes = findOrCreateTag(nextTags, tn, usage);
-      nextTags = tagRes.tags;
-      if (tagRes.id) tagIds.push(tagRes.id);
-    });
+    for (const tn of pick.tags) {
+      const tid = await findOrCreateTagFs(uid, rawTags, tn, Date.now());
+      if (tid) tagIds.push(tid);
+    }
     const summary = title + ' — ' + pick.tail;
-
-    setCategories(catRes.categories);
-    setTags(nextTags);
-    setClickCounter(usage);
-    setForm((prev) => ({ ...prev, title, summary, categoryId: catRes.id, tagIds }));
+    setForm((prev) => ({ ...prev, title, summary, categoryId, tagIds }));
   };
 
   const saveContent = () => {
-    if (!form.title.trim()) return;
+    if (!uid || !form.title.trim()) return;
+    const fields: ItemFields = {
+      title: form.title.trim(),
+      url: form.url.trim() || null,
+      summary: form.summary.trim(),
+      categoryId: form.categoryId,
+      tagIds: form.tagIds,
+    };
     if (editingContentId) {
-      setContents((prev) =>
-        prev.map((c) =>
-          c.id === editingContentId
-            ? {
-                ...c,
-                title: form.title.trim(),
-                url: form.url.trim() || null,
-                summary: form.summary.trim(),
-                categoryId: form.categoryId,
-                tagIds: form.tagIds,
-                sourceType: form.url.trim() ? 'link' : 'manual',
-              }
-            : c
-        )
-      );
+      updateItemFields(uid, editingContentId, fields).catch(console.error);
       setEditingContentId(null);
       setForm(emptyForm);
       if (previousTab) {
         setActiveTab(previousTab);
       }
     } else {
-      const newContent: ContentItem = {
-        id: 'ct_' + Date.now(),
-        sourceType: form.url.trim() ? 'link' : 'manual',
-        url: form.url.trim() || null,
-        title: form.title.trim(),
-        summary: form.summary.trim(),
-        categoryId: form.categoryId,
-        tagIds: form.tagIds,
-        status: 'pending',
-      };
-      setContents((prev) => [newContent, ...prev]);
+      addItem(uid, fields).catch(console.error);
       setForm(emptyForm);
       setActiveTab('home');
     }
@@ -368,16 +429,14 @@ export function useLaterIslandState() {
   };
 
   const markDone = (id: string) => {
-    setContents((prev) => prev.map((c) => (c.id === id ? { ...c, status: 'done' } : c)));
+    if (uid) setItemDone(uid, id, true).catch(console.error);
   };
 
   const selectCategoryFilter = (id: string) => setSelectedCategoryId(id);
   const backFromCategory = () => setSelectedCategoryId(null);
 
   const selectTagFilter = (id: string) => {
-    const usage = clickCounter + 1;
-    setTags((prev) => prev.map((t) => (t.id === id ? { ...t, lastUsedAt: usage } : t)));
-    setClickCounter(usage);
+    if (uid) bumpTagUsage(uid, id, Date.now()).catch(console.error);
     setSelectedTagId(id);
   };
   const backFromTag = () => setSelectedTagId(null);
@@ -389,14 +448,12 @@ export function useLaterIslandState() {
       actionLabel: t.delete,
       color: '#B15C4A',
       onConfirm: () => {
-        setCategories((prev) => prev.filter((x) => x.id !== cat.id));
-        // Move all contents in this category to trash
-        const contentsInCat = contents.filter((c) => c.categoryId === cat.id);
-        setContents((prev) => prev.filter((c) => c.categoryId !== cat.id));
-        setTrashContents((prev) => [
-          ...prev, 
-          ...contentsInCat.map((c) => ({ ...c, status: 'trash' as const, originalCategoryName: cat.name }))
-        ]);
+        if (uid) {
+          softDeleteCategory(uid, cat.id).catch(console.error);
+          // Move the category's active items to trash; categoryId is kept so
+          // trashed cards can still show their original category name.
+          moveCategoryItemsToTrash(uid, cat.id).catch(console.error);
+        }
         setConfirmDialog(null);
       },
     });
@@ -409,13 +466,10 @@ export function useLaterIslandState() {
       actionLabel: t.delete,
       color: '#B15C4A',
       onConfirm: () => {
-        setTags((prev) => prev.filter((x) => x.id !== tag.id));
-        setContents((prev) =>
-          prev.map((c) => ({
-            ...c,
-            tagIds: c.tagIds.filter((x) => x !== tag.id),
-          }))
-        );
+        if (uid) {
+          softDeleteTag(uid, tag.id).catch(console.error);
+          removeTagFromActiveItems(uid, tag.id).catch(console.error);
+        }
         setConfirmDialog(null);
       },
     });
@@ -428,11 +482,7 @@ export function useLaterIslandState() {
       actionLabel: t.delete,
       color: '#B15C4A',
       onConfirm: () => {
-        const item = contents.find((c) => c.id === id);
-        if (item) {
-          setContents((prev) => prev.filter((c) => c.id !== id));
-          setTrashContents((prev) => [...prev, { ...item, status: 'trash' as const }]);
-        }
+        if (uid) setItemDeleted(uid, id, true).catch(console.error);
         setConfirmDialog(null);
       },
     });
@@ -445,9 +495,9 @@ export function useLaterIslandState() {
       actionLabel: t.delete,
       color: '#B15C4A',
       onConfirm: () => {
-        if (id.startsWith('content_')) {
+        if (uid && id.startsWith('content_')) {
           const contentId = id.replace('content_', '');
-          setTrashContents((prev) => prev.filter((c) => c.id !== contentId));
+          deleteItemPermanently(uid, contentId).catch(console.error);
         }
         setConfirmDialog(null);
       },
@@ -455,69 +505,57 @@ export function useLaterIslandState() {
   };
 
   const restoreTrashItem = (id: string) => {
-    if (id.startsWith('content_')) {
-      const contentId = id.replace('content_', '');
-      const content = trashContents.find((c) => c.id === contentId);
-      if (content) {
-        let targetCategoryId = content.categoryId;
-        if (content.originalCategoryName && targetCategoryId) {
-          const catExists = categories.some((c) => c.id === targetCategoryId);
-          if (!catExists) {
-            setCategories((prev) => [
-              ...prev,
-              {
-                id: targetCategoryId as string,
-                name: content.originalCategoryName as string,
-                createdBy: 'user',
-              },
-            ]);
-          }
-        }
-        
-        const { originalCategoryName, ...rest } = content;
-        setContents((prev) => [...prev, { ...rest, status: 'pending' as const }]);
-        setTrashContents((prev) => prev.filter((c) => c.id !== contentId));
-      }
-    }
+    if (!uid || !id.startsWith('content_')) return;
+    const contentId = id.replace('content_', '');
+    setItemDeleted(uid, contentId, false).catch(console.error);
   };
 
   const updateContentItem = (id: string, fields: Partial<ContentItem>) => {
-    setContents((prev) => prev.map((c) => (c.id === id ? { ...c, ...fields } : c)));
+    if (!uid) return;
+    const { status, title, url, summary, categoryId, tagIds } = fields;
+    if (status === 'done') setItemDone(uid, id, true).catch(console.error);
+    if (status === 'pending') setItemDone(uid, id, false).catch(console.error);
+    if (status === 'trash') setItemDeleted(uid, id, true).catch(console.error);
+
+    const patch: Partial<ItemFields> = {};
+    if (title !== undefined) patch.title = title;
+    if (url !== undefined) patch.url = url;
+    if (summary !== undefined) patch.summary = summary;
+    if (categoryId !== undefined) patch.categoryId = categoryId;
+    if (tagIds !== undefined) patch.tagIds = tagIds;
+    if (Object.keys(patch).length > 0) updateItemFields(uid, id, patch).catch(console.error);
   };
 
-  const updateContentTags = (id: string, tagNames: string[]) => {
-    let nextTags = tags;
-    let clickCount = clickCounter;
-    const tagIds = tagNames
-      .map((name) => {
-        clickCount += 1;
-        const res = findOrCreateTag(nextTags, name, clickCount);
-        nextTags = res.tags;
-        return res.id;
-      })
-      .filter(Boolean) as string[];
-
-    setTags(nextTags);
-    setClickCounter(clickCount);
-    setContents((prev) => prev.map((c) => (c.id === id ? { ...c, tagIds } : c)));
+  const updateContentTags = async (id: string, tagNames: string[]) => {
+    if (!uid) return;
+    const tagIds: string[] = [];
+    for (const name of tagNames) {
+      const tid = await findOrCreateTagFs(uid, rawTags, name, Date.now());
+      if (tid) tagIds.push(tid);
+    }
+    updateItemFields(uid, id, { tagIds }).catch(console.error);
   };
 
   const updateCategoryName = (id: string, newName: string) => {
-    setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, name: newName } : c)));
+    if (uid) renameCategory(uid, id, newName).catch(console.error);
   };
 
   const updateTagName = (id: string, newName: string) => {
-    setTags((prev) => prev.map((t) => (t.id === id ? { ...t, name: newName } : t)));
+    if (uid) renameTag(uid, id, newName).catch(console.error);
   };
 
   // --- derived values (mirrors renderVals in the original prototype) ---
 
-  const translatedCategories = categories.map((cat) => ({
+  // Active (non-deleted) categories/tags — everything selectable in the UI.
+  const activeCategories = rawCategories.filter((c) => !c.isDeleted);
+  const activeTags = rawTags.filter((t) => !t.isDeleted);
+
+  const translatedCategories = activeCategories.map((cat) => ({
     ...cat,
     name: categoryTranslations[settingsLanguage][cat.id] || cat.name,
   }));
 
-  const translatedTags = tags.map((tag) => ({
+  const translatedTags = activeTags.map((tag) => ({
     ...tag,
     name: tagTranslations[settingsLanguage][tag.id] || tag.name,
   }));
@@ -529,6 +567,13 @@ export function useLaterIslandState() {
       title: translation ? translation.title : c.title,
       summary: translation ? translation.summary : c.summary,
     };
+  });
+
+  // Includes soft-deleted categories so cards/trash can still show the
+  // original category name after it's been "permanently" removed from the UI.
+  const catMapAll: Record<string, string> = {};
+  rawCategories.forEach((c) => {
+    catMapAll[c.id] = categoryTranslations[settingsLanguage][c.id] || c.name;
   });
 
   const catMap: Record<string, string> = {};
@@ -543,7 +588,7 @@ export function useLaterIslandState() {
   const enrichmentCategoryNameFallback = settingsLanguage === 'ko' ? '미분류' : 'Uncategorized';
   const enrich = (c: ContentItem) => ({
     ...c,
-    categoryName: catMap[c.categoryId ?? ''] || enrichmentCategoryNameFallback,
+    categoryName: catMapAll[c.categoryId ?? ''] || enrichmentCategoryNameFallback,
     tagNames: (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean),
     onComplete: () => markDone(c.id),
     onUncomplete: () => updateContentItem(c.id, { status: 'pending' }),
@@ -614,21 +659,20 @@ export function useLaterIslandState() {
 
   const activeConfirm = confirmDialog;
 
-  const trashItems = trashContents.map((c) => {
-    const translation = contentTranslations[settingsLanguage][c.id];
-    const title = translation ? translation.title : c.title;
-    const summary = translation ? translation.summary : c.summary;
-    const categoryName = catMap[c.categoryId ?? ''] || c.originalCategoryName || (settingsLanguage === 'ko' ? '미분류' : 'Uncategorized');
-    const tagNames = (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean);
-    return {
-      id: 'content_' + c.id,
-      type: 'content' as const,
-      title,
-      summary,
-      categoryName,
-      tagNames,
-    };
-  });
+  const trashItems = translatedContents
+    .filter((c) => c.status === 'trash')
+    .map((c) => {
+      const categoryName = catMapAll[c.categoryId ?? ''] || enrichmentCategoryNameFallback;
+      const tagNames = (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean);
+      return {
+        id: 'content_' + c.id,
+        type: 'content' as const,
+        title: c.title,
+        summary: c.summary,
+        categoryName,
+        tagNames,
+      };
+    });
 
   return {
     // shell / header
@@ -652,6 +696,8 @@ export function useLaterIslandState() {
     setSettingsLanguage,
     backFromSettings,
     openConfirm,
+    userDisplayName,
+    userEmail,
 
     confirmDialog,
     activeConfirm,
@@ -659,6 +705,8 @@ export function useLaterIslandState() {
 
     activeTab,
     setTab,
+
+    dataLoading,
 
     // tab data
     pendingContents,
@@ -723,4 +771,3 @@ export function useLaterIslandState() {
 }
 
 export type LaterIslandState = ReturnType<typeof useLaterIslandState>;
-

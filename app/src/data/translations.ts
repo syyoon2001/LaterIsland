@@ -56,6 +56,7 @@ export const translations = {
     
     // Generic
     listEmpty: '아직 등록된 항목이 없어요',
+    loading: '불러오는 중...',
 
     // SettingsScreen
     profileName: '나중에',
@@ -73,6 +74,7 @@ export const translations = {
     confirmDeleteBody: '삭제하면 저장된 모든 콘텐츠가 영구적으로 사라지며 복구할 수 없어요.',
     confirmDeleteAction: '삭제',
     confirmCancel: '취소',
+    reauthRequired: '보안을 위해 다시 로그인 후 시도해주세요.',
 
     // New Trash & Edit keys
     trash: '휴지통',
@@ -141,6 +143,7 @@ export const translations = {
     
     // Generic
     listEmpty: 'No items added yet',
+    loading: 'Loading...',
 
     // SettingsScreen
     profileName: 'Alex Kim',
@@ -158,6 +161,7 @@ export const translations = {
     confirmDeleteBody: 'This permanently removes all your saved content and cannot be undone.',
     confirmDeleteAction: 'Delete',
     confirmCancel: 'Cancel',
+    reauthRequired: 'For your security, please log in again and try.',
 
     // New Trash & Edit keys
     trash: 'Trash',

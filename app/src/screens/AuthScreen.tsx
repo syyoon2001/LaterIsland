@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PhoneFrame } from '../components/PhoneFrame';
+import { getAuthErrorMessage, signInWithEmail, signInWithGoogle, signUpWithEmail, updateUserProfile } from '../lib/auth';
 import type { Language } from '../types';
 
 type Mode = 'login' | 'signup';
@@ -35,9 +36,48 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const isLogin = mode === 'login';
   const isSignup = mode === 'signup';
+
+  const handleSubmit = async () => {
+    setError(null);
+    if (isSignup && password !== passwordConfirm) {
+      setError(language === 'ko' ? '비밀번호가 일치하지 않습니다.' : 'Passwords do not match.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      if (isSignup) {
+        const credential = await signUpWithEmail(email, password);
+        if (name.trim()) {
+          await updateUserProfile(credential.user, name.trim());
+        }
+      } else {
+        await signInWithEmail(email, password);
+      }
+      onAuthenticated();
+    } catch (err) {
+      setError(getAuthErrorMessage(err, language));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      await signInWithGoogle();
+      onAuthenticated();
+    } catch (err) {
+      setError(getAuthErrorMessage(err, language));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <PhoneFrame background="#F7F9F2" language={language}>
@@ -62,7 +102,7 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {isSignup && (
             <div>
-              <label style={labelStyle}>이름</label>
+              <label style={labelStyle}>{language === 'en' ? 'Name (Nickname)' : '이름 (닉네임)'}</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -114,9 +154,14 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
             </div>
           )}
 
+          {error && (
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#B15C4A', marginTop: -4 }}>{error}</div>
+          )}
+
           <button
             type="button"
-            onClick={onAuthenticated}
+            onClick={handleSubmit}
+            disabled={submitting}
             style={{
               width: '100%',
               border: '1px solid #6E8C6A',
@@ -126,7 +171,8 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
               color: '#fff',
               fontSize: 14,
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: submitting ? 'default' : 'pointer',
+              opacity: submitting ? 0.7 : 1,
               fontFamily: 'inherit',
               marginTop: 6,
             }}
@@ -142,7 +188,8 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
 
           <button
             type="button"
-            onClick={onAuthenticated}
+            onClick={handleGoogle}
+            disabled={submitting}
             style={{
               width: '100%',
               border: '1px solid rgba(63,82,64,0.25)',
@@ -152,7 +199,8 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
               color: '#3F5240',
               fontSize: 13,
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: submitting ? 'default' : 'pointer',
+              opacity: submitting ? 0.7 : 1,
               fontFamily: 'inherit',
             }}
           >

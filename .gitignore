@@ -1,0 +1,7 @@
+node_modules
+dist
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+app/LaterIsland_private_key.json

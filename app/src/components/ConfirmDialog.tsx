@@ -9,9 +9,21 @@ export interface ConfirmDialogProps {
   onCancel: () => void;
   onConfirm: () => void;
   language: Language;
+  error?: string;
+  confirming?: boolean;
 }
 
-export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onConfirm, language }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  title,
+  body,
+  actionLabel,
+  color,
+  onCancel,
+  onConfirm,
+  language,
+  error,
+  confirming,
+}: ConfirmDialogProps) {
   const t = translations[language];
 
   return (
@@ -37,6 +49,11 @@ export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onCon
       >
         <div style={{ fontSize: 15, fontWeight: 700, marginBottom: body ? 8 : 20 }}>{title}</div>
         {body && <div style={{ fontSize: 13, opacity: 0.65, lineHeight: 1.5, marginBottom: 20 }}>{body}</div>}
+        {error && (
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#B15C4A', marginTop: -10, marginBottom: 20 }}>
+            {error}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             type="button"
@@ -59,6 +76,7 @@ export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onCon
           <button
             type="button"
             onClick={onConfirm}
+            disabled={confirming}
             style={{
               flex: 1,
               border: `1px solid ${color}`,
@@ -68,7 +86,8 @@ export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onCon
               color: '#fff',
               fontSize: 13,
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: confirming ? 'default' : 'pointer',
+              opacity: confirming ? 0.7 : 1,
               fontFamily: 'inherit',
             }}
           >

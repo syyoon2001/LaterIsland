@@ -9,6 +9,8 @@ interface SettingsScreenProps {
   backFromSettings: () => void;
   openLogoutConfirm: () => void;
   openDeleteConfirm: () => void;
+  userDisplayName: string;
+  userEmail: string;
 }
 
 export function SettingsScreen({
@@ -17,11 +19,14 @@ export function SettingsScreen({
   backFromSettings,
   openLogoutConfirm,
   openDeleteConfirm,
+  userDisplayName,
+  userEmail,
 }: SettingsScreenProps) {
   const isKo = settingsLanguage === 'ko';
   const isEn = settingsLanguage === 'en';
   const t = translations[settingsLanguage];
   const thumbRef = useScrollThumb('settings-scroll-content');
+  const displayName = userDisplayName || userEmail.split('@')[0] || t.profileName;
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
@@ -71,7 +76,10 @@ export function SettingsScreen({
               flexShrink: 0,
             }}
           />
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{t.profileName}</div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700 }}>{displayName}</div>
+            {userEmail && <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>{userEmail}</div>}
+          </div>
         </div>
 
         <div>

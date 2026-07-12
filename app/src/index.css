@@ -35,6 +35,12 @@ body {
   }
 }
 
+@keyframes ls-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 input,
 textarea,
 button {
