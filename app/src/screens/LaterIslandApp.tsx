@@ -18,7 +18,7 @@ export function LaterIslandApp() {
   const thumbRef = useScrollThumb(SCROLL_EL_ID);
 
   return (
-    <PhoneFrame background="#E6F1E3">
+    <PhoneFrame background="#E6F1E3" language={s.settingsLanguage}>
       {!s.showSettings && (
         <div style={{ position: 'absolute', inset: 0 }}>
           <Header

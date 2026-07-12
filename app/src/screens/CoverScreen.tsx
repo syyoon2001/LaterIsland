@@ -1,12 +1,14 @@
 import { PhoneFrame } from '../components/PhoneFrame';
+import type { Language } from '../types';
 
 interface CoverScreenProps {
   onEnter: () => void;
+  language: Language;
 }
 
-export function CoverScreen({ onEnter }: CoverScreenProps) {
+export function CoverScreen({ onEnter, language }: CoverScreenProps) {
   return (
-    <PhoneFrame background="#E6F1E3">
+    <PhoneFrame background="#E6F1E3" language={language}>
       <button
         type="button"
         onClick={onEnter}

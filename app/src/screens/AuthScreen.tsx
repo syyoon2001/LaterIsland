@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { PhoneFrame } from '../components/PhoneFrame';
+import type { Language } from '../types';
 
 type Mode = 'login' | 'signup';
 
 interface AuthScreenProps {
   onAuthenticated: () => void;
+  language: Language;
 }
 
 const inputStyle = {
@@ -26,7 +28,7 @@ const labelStyle = {
   marginBottom: 6,
 };
 
-export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
+export function AuthScreen({ onAuthenticated, language }: AuthScreenProps) {
   const [mode, setMode] = useState<Mode>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,7 +39,7 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const isSignup = mode === 'signup';
 
   return (
-    <PhoneFrame background="#F7F9F2">
+    <PhoneFrame background="#F7F9F2" language={language}>
       <div
         style={{
           position: 'absolute',
