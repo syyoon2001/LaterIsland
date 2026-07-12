@@ -79,7 +79,7 @@ export function TagsTab({
                     style={{
                       border: 'none',
                       background: 'transparent',
-                      padding: 4,
+                      padding: 6,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -88,8 +88,8 @@ export function TagsTab({
                     }}
                   >
                     <svg
-                      width="18"
-                      height="18"
+                      width="16"
+                      height="16"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="#3F5240"
