@@ -4,6 +4,19 @@ export function SimulationPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [language, setLanguage] = useState<'ko' | 'en'>('ko');
   const [activeId, setActiveId] = useState<string>('ko-cover'); // e.g. ko-home, en-settings
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const handleLoginSync = (e: any) => setIsLoggedIn(!!e.detail?.isLoggedIn);
+    window.addEventListener('simulation-login-sync', handleLoginSync);
+    return () => window.removeEventListener('simulation-login-sync', handleLoginSync);
+  }, []);
+
+  const toggleLoggedIn = () => {
+    const next = !isLoggedIn;
+    setIsLoggedIn(next);
+    window.dispatchEvent(new CustomEvent('simulation-set-login', { detail: { isLoggedIn: next } }));
+  };
 
   useEffect(() => {
     const handleSync = (e: any) => {
@@ -149,6 +162,47 @@ export function SimulationPanel() {
             테스트 도구
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 16px',
+                border: '1px solid rgba(63, 82, 64, 0.2)',
+                borderRadius: 8,
+              }}
+            >
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#3F5240' }}>로그인 상태 시뮬레이션</span>
+              <div
+                role="switch"
+                aria-checked={isLoggedIn}
+                onClick={toggleLoggedIn}
+                style={{
+                  width: 40,
+                  height: 22,
+                  borderRadius: 999,
+                  background: isLoggedIn ? '#6E8C6A' : 'rgba(63, 82, 64, 0.25)',
+                  position: 'relative',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s ease',
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    left: isLoggedIn ? 20 : 2,
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    background: '#fff',
+                    transition: 'left 0.2s ease',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }}
+                />
+              </div>
+            </div>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('simulation-generate-dummy'))}
               style={{
