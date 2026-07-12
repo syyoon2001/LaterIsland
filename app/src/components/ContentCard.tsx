@@ -113,21 +113,23 @@ export function ContentCard({
 
         {/* Kebab menu on the bottom right */}
         <div style={{ position: 'relative' }}>
-          <button
-            type="button"
-            onClick={() => setKebabOpen(!kebabOpen)}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              padding: 6,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 6,
-            }}
-            className={styles.kebabTrigger}
-          >
+            <button
+              type="button"
+              onClick={() => setKebabOpen(!kebabOpen)}
+              style={{
+                width: 24,
+                height: 24,
+                border: 'none',
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 6,
+              }}
+              className={styles.kebabTrigger}
+            >
             <svg
               width="16"
               height="16"

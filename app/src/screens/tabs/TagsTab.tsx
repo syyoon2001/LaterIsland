@@ -77,9 +77,11 @@ export function TagsTab({
                     type="button"
                     onClick={() => setKebabOpenId(kebabOpenId === tag.id ? null : tag.id)}
                     style={{
+                      width: 24,
+                      height: 24,
                       border: 'none',
                       background: 'transparent',
-                      padding: 6,
+                      padding: 0,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',

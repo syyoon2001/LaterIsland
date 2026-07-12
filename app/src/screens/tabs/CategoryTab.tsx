@@ -76,9 +76,11 @@ export function CategoryTab({
                     type="button"
                     onClick={() => setKebabOpenId(kebabOpenId === cat.id ? null : cat.id)}
                     style={{
+                      width: 24,
+                      height: 24,
                       border: 'none',
                       background: 'transparent',
-                      padding: 6,
+                      padding: 0,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',

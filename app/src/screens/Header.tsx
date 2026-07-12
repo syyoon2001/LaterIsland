@@ -85,11 +85,10 @@ export function Header({
             </svg>
           </button>
           <button type="button" onClick={toggleMenu} aria-label={t.settings} className={styles.iconButton} style={{ width: 36, height: 36 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
-              <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
-              <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
-              <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" fill="#3F5240"></rect>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1.25"></circle>
+              <circle cx="5" cy="12" r="1.25"></circle>
+              <circle cx="19" cy="12" r="1.25"></circle>
             </svg>
           </button>
         </div>
