@@ -111,6 +111,7 @@ export function AddTab({
             disabled={aiLoadingStatus !== 'idle'}
             style={{
               height: 41,
+              width: 170,
               padding: '0 16px',
               border: 'none',
               borderRadius: 10,
@@ -120,6 +121,9 @@ export function AddTab({
               fontSize: 13,
               cursor: aiLoadingStatus !== 'idle' ? 'default' : 'pointer',
               opacity: aiLoadingStatus !== 'idle' ? 0.7 : 1,
+              transition: 'opacity 0.2s',
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
             }}
           >
             {aiLoadingStatus === 'fetching' 
