@@ -176,7 +176,15 @@ export function Header({
               style={{ ...menuRowStyle, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: 'auto', height: 'auto' }}
             >
               <span>{t.sortBy}</span>
-              <span style={{ position: 'absolute', right: 10, fontSize: 11 }}>{sortSubmenuOpen ? '▲' : '▼'}</span>
+              <span style={{ position: 'absolute', right: 10, display: 'flex' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5240" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  {sortSubmenuOpen ? (
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  ) : (
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  )}
+                </svg>
+              </span>
             </div>
             {sortSubmenuOpen && (
               <div style={{ display: 'flex', flexDirection: 'column', padding: '2px 4px 2px 14px' }}>

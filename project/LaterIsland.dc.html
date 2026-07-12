@@ -61,7 +61,18 @@
     <div style="position:absolute; top:64px; right:12px; z-index:9; background:#F7F9F2; border:1px solid rgba(63,82,64,0.15); border-radius:12px; box-shadow:0 8px 24px rgba(63,82,64,0.15); min-width:130px; padding:6px; overflow:hidden;">
       <div onClick="{{ toggleSortSubmenu }}" style="padding:10px 10px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; position:relative; display:flex; justify-content:center; align-items:center;" style-hover="background:rgba(63,82,64,0.08);">
         <span>정렬 기준</span>
-        <span style="position:absolute; right:10px; font-size:11px;">{{ sortCaret }}</span>
+        <span style="position:absolute; right:10px; display:flex;">
+          <sc-if value="{{ sortSubmenuOpen }}" hint-placeholder-val="{{ false }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+          </sc-if>
+          <sc-if value="{{ sortSubmenuOpen == false }}" hint-placeholder-val="{{ true }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5240" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </sc-if>
+        </span>
       </div>
       <sc-if value="{{ sortSubmenuOpen }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex; flex-direction:column; padding:2px 4px 2px 14px;">
@@ -176,8 +187,18 @@
             <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">카테고리 (형식)</label>
             <div onClick="{{ toggleCategoryDropdown }}" style="display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; cursor:pointer;">
               <span style="font-size:14px;">{{ selectedCategoryLabel }}</span>
-              <sc-if value="{{ categoryDropdownOpen }}" hint-placeholder-val="{{ false }}"><span>▲</span></sc-if>
-              <sc-if value="{{ categoryDropdownClosed }}" hint-placeholder-val="{{ true }}"><span>▼</span></sc-if>
+              <span style="display:flex; color:#3F5240;">
+                <sc-if value="{{ categoryDropdownClosed }}" hint-placeholder-val="{{ true }}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </sc-if>
+                <sc-if value="{{ categoryDropdownClosed == false }}" hint-placeholder-val="{{ false }}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  </svg>
+                </sc-if>
+              </span>
             </div>
             <sc-if value="{{ categoryDropdownOpen }}" hint-placeholder-val="{{ false }}">
               <div style="border:1px solid rgba(63,82,64,0.3); border-top:none; border-radius:0 0 10px 10px; padding:12px; display:flex; flex-direction:column; gap:8px;">
