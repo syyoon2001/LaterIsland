@@ -33,7 +33,7 @@ export function TrashScreen({
   const thumbRef = useScrollThumb('trash-scroll-content');
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#F7F9F2', display: 'flex', flexDirection: 'column', zIndex: 15 }}>
+    <div style={{ position: 'absolute', inset: 0, background: '#E6F1E3', display: 'flex', flexDirection: 'column', zIndex: 15 }}>
       {/* Header */}
       <div
         style={{

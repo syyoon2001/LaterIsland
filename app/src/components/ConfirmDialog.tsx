@@ -46,7 +46,7 @@ export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onCon
               border: '1px solid rgba(63,82,64,0.3)',
               borderRadius: 10,
               padding: 10,
-              background: '#fff',
+              background: '#F7F9F2',
               color: '#3F5240',
               fontSize: 13,
               fontWeight: 600,

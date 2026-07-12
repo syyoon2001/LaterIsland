@@ -35,24 +35,24 @@
       <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
         <div>
           <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">이름</label>
-          <input value="{{ name }}" onChange="{{ onNameChange }}" placeholder="이름을 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+          <input value="{{ name }}" onChange="{{ onNameChange }}" placeholder="이름을 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background: #F7F9F2; color:#3F5240;" />
         </div>
       </sc-if>
 
       <div>
         <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">이메일</label>
-        <input value="{{ email }}" onChange="{{ onEmailChange }}" placeholder="you@example.com" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+        <input value="{{ email }}" onChange="{{ onEmailChange }}" placeholder="you@example.com" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background: #F7F9F2; color:#3F5240;" />
       </div>
 
       <div>
         <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">비밀번호</label>
-        <input type="password" value="{{ password }}" onChange="{{ onPasswordChange }}" placeholder="비밀번호를 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+        <input type="password" value="{{ password }}" onChange="{{ onPasswordChange }}" placeholder="비밀번호를 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background: #F7F9F2; color:#3F5240;" />
       </div>
 
       <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
         <div>
           <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">비밀번호 확인</label>
-          <input type="password" value="{{ passwordConfirm }}" onChange="{{ onPasswordConfirmChange }}" placeholder="비밀번호를 다시 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
+          <input type="password" value="{{ passwordConfirm }}" onChange="{{ onPasswordConfirmChange }}" placeholder="비밀번호를 다시 입력하세요" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background: #F7F9F2; color:#3F5240;" />
         </div>
       </sc-if>
 
@@ -70,7 +70,7 @@
         <div style="flex:1; height:1px; background:rgba(63,82,64,0.15);"></div>
       </div>
 
-      <button onClick="{{ noop }}" style="width:100%; border:1px solid rgba(63,82,64,0.25); border-radius:10px; padding:13px; background:#fff; color:#3F5240; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">Google로 계속하기</button>
+      <button onClick="{{ noop }}" style="width:100%; border:1px solid rgba(63,82,64,0.25); border-radius:10px; padding:13px; background: #F7F9F2; color:#3F5240; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">Google로 계속하기</button>
 
     </div>
 

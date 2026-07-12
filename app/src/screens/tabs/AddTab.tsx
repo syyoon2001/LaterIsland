@@ -364,7 +364,7 @@ export function AddTab({
                 border: '1px solid rgba(63,82,64,0.3)',
                 borderRadius: 10,
                 padding: 14,
-                background: '#fff',
+                background: '#F7F9F2',
                 color: '#3F5240',
                 fontSize: 14,
                 fontWeight: 700,

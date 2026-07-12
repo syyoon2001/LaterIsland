@@ -17,7 +17,7 @@ const inputStyle = {
   padding: 12,
   fontSize: 14,
   fontFamily: 'inherit',
-  background: '#fff',
+  background: '#F7F9F2',
   color: '#3F5240',
 };
 
@@ -191,7 +191,7 @@ export function AuthScreen({ onAuthenticated, language }: AuthScreenProps) {
               border: '1px solid rgba(63,82,64,0.25)',
               borderRadius: 10,
               padding: 13,
-              background: '#fff',
+              background: '#F7F9F2',
               color: '#3F5240',
               fontSize: 13,
               fontWeight: 600,

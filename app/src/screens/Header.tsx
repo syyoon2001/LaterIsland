@@ -126,7 +126,7 @@ export function Header({
                 padding: 12,
                 fontSize: 14,
                 fontFamily: 'inherit',
-                background: '#fff',
+                background: '#F7F9F2',
                 color: '#3F5240',
               }}
             />
@@ -138,7 +138,7 @@ export function Header({
                 border: '1px solid #6E8C6A',
                 borderRadius: 8,
                 padding: '6px 12px',
-                background: '#fff',
+                background: '#F7F9F2',
                 color: '#6E8C6A',
                 fontSize: 12,
                 fontWeight: 600,

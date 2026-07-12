@@ -52,8 +52,8 @@
   <sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeSearch }}" style="position:absolute; inset:0; z-index:8;"></div>
     <div style="position:absolute; top:64px; right:52px; z-index:9; width:min(240px, calc(100% - 24px)); background:#F7F9F2; border:1px solid rgba(63,82,64,0.15); border-radius:12px; box-shadow:0 8px 24px rgba(63,82,64,0.15); padding:10px; display:flex; flex-direction:column; gap:8px;">
-      <input value="{{ searchQuery }}" onChange="{{ onSearchQueryChange }}" placeholder="Search" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background:#fff; color:#3F5240;" />
-      <button onClick="{{ noop }}" style="align-self:flex-start; border:1px solid #6E8C6A; border-radius:8px; padding:6px 12px; background:#fff; color:#6E8C6A; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;">✦ AI Search</button>
+      <input value="{{ searchQuery }}" onChange="{{ onSearchQueryChange }}" placeholder="Search" style="width:100%; box-sizing:border-box; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; background: #F7F9F2; color:#3F5240;" />
+      <button onClick="{{ noop }}" style="align-self:flex-start; border:1px solid #6E8C6A; border-radius:8px; padding:6px 12px; background: #F7F9F2; color:#6E8C6A; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;">✦ AI Search</button>
     </div>
   </sc-if>
 
@@ -389,7 +389,7 @@
         <div style="font-size:15px; font-weight:700; margin-bottom:8px;">{{ confirmTitle }}</div>
         <div style="font-size:13px; opacity:0.65; line-height:1.5; margin-bottom:20px;">{{ confirmBody }}</div>
         <div style="display:flex; gap:10px;">
-          <button onClick="{{ closeConfirm }}" style="flex:1; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:10px; background:#fff; color:#3F5240; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">Cancel</button>
+          <button onClick="{{ closeConfirm }}" style="flex:1; border:1px solid rgba(63,82,64,0.3); border-radius:10px; padding:10px; background: #F7F9F2; color:#3F5240; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">Cancel</button>
           <button onClick="{{ confirmAction }}" style="flex:1; border:1px solid {{ confirmColor }}; border-radius:10px; padding:10px; background:{{ confirmColor }}; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">{{ confirmActionLabel }}</button>
         </div>
       </div>
