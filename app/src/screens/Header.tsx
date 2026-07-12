@@ -163,7 +163,7 @@ export function Header({
               border: '1px solid rgba(63,82,64,0.15)',
               borderRadius: 12,
               boxShadow: '0 8px 24px rgba(63,82,64,0.15)',
-              minWidth: 140,
+              minWidth: 130,
               padding: 6,
               overflow: 'hidden',
             }}
@@ -171,10 +171,10 @@ export function Header({
             <div
               onClick={toggleSortSubmenu}
               className={styles.iconButton}
-              style={{ ...menuRowStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 'auto', height: 'auto' }}
+              style={{ ...menuRowStyle, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: 'auto', height: 'auto' }}
             >
               <span>{t.sortBy}</span>
-              <span style={{ fontSize: 11 }}>{sortSubmenuOpen ? '▲' : '▼'}</span>
+              <span style={{ position: 'absolute', right: 10, fontSize: 11 }}>{sortSubmenuOpen ? '▲' : '▼'}</span>
             </div>
             {sortSubmenuOpen && (
               <div style={{ display: 'flex', flexDirection: 'column', padding: '2px 4px 2px 14px' }}>
@@ -185,17 +185,18 @@ export function Header({
                     ...sortOptionStyle(sortOrder === 'latest'),
                     width: 'auto',
                     height: 'auto',
+                    position: 'relative',
                     display: 'flex',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    gap: 6,
                   }}
                 >
+                  {t.sortLatest}
                   {sortOrder === 'latest' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   )}
-                  {t.sortLatest}
                 </div>
                 <div
                   onClick={() => selectSort('oldest')}
@@ -204,17 +205,18 @@ export function Header({
                     ...sortOptionStyle(sortOrder === 'oldest'),
                     width: 'auto',
                     height: 'auto',
+                    position: 'relative',
                     display: 'flex',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    gap: 6,
                   }}
                 >
+                  {t.sortOldest}
                   {sortOrder === 'oldest' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   )}
-                  {t.sortOldest}
                 </div>
                 <div
                   onClick={() => selectSort('alpha')}
@@ -223,17 +225,18 @@ export function Header({
                     ...sortOptionStyle(sortOrder === 'alpha'),
                     width: 'auto',
                     height: 'auto',
+                    position: 'relative',
                     display: 'flex',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    gap: 6,
                   }}
                 >
+                  {t.sortAlpha}
                   {sortOrder === 'alpha' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   )}
-                  {t.sortAlpha}
                 </div>
               </div>
             )}
