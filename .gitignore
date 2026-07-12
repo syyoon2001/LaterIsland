@@ -5,3 +5,4 @@ dist
 .env.local
 .env.*.local
 app/LaterIsland_private_key.json
+backups/
