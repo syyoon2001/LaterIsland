@@ -23,6 +23,7 @@ export interface ContentItem {
   url: string | null;
   summary: string;
   categoryId: string | null;
+  originalCategoryName?: string;
   tagIds: string[];
   status: ContentStatus;
 }

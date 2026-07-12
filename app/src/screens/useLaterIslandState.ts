@@ -89,8 +89,6 @@ export function useLaterIslandState() {
   const [previousTab, setPreviousTab] = useState<Tab | null>(null);
   const [showTrash, setShowTrash] = useState(false);
   const [trashContents, setTrashContents] = useState<ContentItem[]>([]);
-  const [trashCategories, setTrashCategories] = useState<Category[]>([]);
-  const [trashTags, setTrashTags] = useState<{ tag: Tag; originalItemIds: string[] }[]>([]);
 
   useEffect(() => {
     const handleJump = (e: any) => {
@@ -335,11 +333,13 @@ export function useLaterIslandState() {
       color: '#B15C4A',
       onConfirm: () => {
         setCategories((prev) => prev.filter((x) => x.id !== cat.id));
-        setTrashCategories((prev) => [...prev, cat]);
         // Move all contents in this category to trash
         const contentsInCat = contents.filter((c) => c.categoryId === cat.id);
         setContents((prev) => prev.filter((c) => c.categoryId !== cat.id));
-        setTrashContents((prev) => [...prev, ...contentsInCat.map((c) => ({ ...c, status: 'trash' as const }))]);
+        setTrashContents((prev) => [
+          ...prev, 
+          ...contentsInCat.map((c) => ({ ...c, status: 'trash' as const, originalCategoryName: cat.name }))
+        ]);
         setConfirmDialog(null);
       },
     });
@@ -353,14 +353,12 @@ export function useLaterIslandState() {
       color: '#B15C4A',
       onConfirm: () => {
         setTags((prev) => prev.filter((x) => x.id !== tag.id));
-        const itemIdsWithTag = contents.filter((c) => c.tagIds.includes(tag.id)).map((c) => c.id);
         setContents((prev) =>
           prev.map((c) => ({
             ...c,
             tagIds: c.tagIds.filter((x) => x !== tag.id),
           }))
         );
-        setTrashTags((prev) => [...prev, { tag, originalItemIds: itemIdsWithTag }]);
         setConfirmDialog(null);
       },
     });
@@ -390,13 +388,7 @@ export function useLaterIslandState() {
       actionLabel: t.delete,
       color: '#B15C4A',
       onConfirm: () => {
-        if (id.startsWith('cat_')) {
-          const catId = id.replace('cat_', '');
-          setTrashCategories((prev) => prev.filter((c) => c.id !== catId));
-        } else if (id.startsWith('tag_')) {
-          const tagId = id.replace('tag_', '');
-          setTrashTags((prev) => prev.filter((x) => x.tag.id !== tagId));
-        } else if (id.startsWith('content_')) {
+        if (id.startsWith('content_')) {
           const contentId = id.replace('content_', '');
           setTrashContents((prev) => prev.filter((c) => c.id !== contentId));
         }
@@ -406,41 +398,27 @@ export function useLaterIslandState() {
   };
 
   const restoreTrashItem = (id: string) => {
-    if (id.startsWith('cat_')) {
-      const catId = id.replace('cat_', '');
-      const cat = trashCategories.find((c) => c.id === catId);
-      if (cat) {
-        setCategories((prev) => [...prev, cat]);
-        setTrashCategories((prev) => prev.filter((c) => c.id !== catId));
-        // Restore all contents with this categoryId that are in trash
-        const itemsToRestore = trashContents.filter((c) => c.categoryId === catId);
-        setTrashContents((prev) => prev.filter((c) => c.categoryId !== catId));
-        setContents((prev) => [...prev, ...itemsToRestore.map((c) => ({ ...c, status: 'pending' as const }))]);
-      }
-    } else if (id.startsWith('tag_')) {
-      const tagId = id.replace('tag_', '');
-      const trashTagItem = trashTags.find((t) => t.tag.id === tagId);
-      if (trashTagItem) {
-        setTags((prev) => [...prev, trashTagItem.tag]);
-        setTrashTags((prev) => prev.filter((t) => t.tag.id !== tagId));
-        // Restore tag back to its original items
-        setContents((prev) =>
-          prev.map((c) => {
-            if (trashTagItem.originalItemIds.includes(c.id)) {
-              return {
-                ...c,
-                tagIds: c.tagIds.includes(tagId) ? c.tagIds : [...c.tagIds, tagId],
-              };
-            }
-            return c;
-          })
-        );
-      }
-    } else if (id.startsWith('content_')) {
+    if (id.startsWith('content_')) {
       const contentId = id.replace('content_', '');
       const content = trashContents.find((c) => c.id === contentId);
       if (content) {
-        setContents((prev) => [...prev, { ...content, status: 'pending' as const }]);
+        let targetCategoryId = content.categoryId;
+        if (content.originalCategoryName && targetCategoryId) {
+          const catExists = categories.some((c) => c.id === targetCategoryId);
+          if (!catExists) {
+            setCategories((prev) => [
+              ...prev,
+              {
+                id: targetCategoryId as string,
+                name: content.originalCategoryName as string,
+                createdBy: 'user',
+              },
+            ]);
+          }
+        }
+        
+        const { originalCategoryName, ...rest } = content;
+        setContents((prev) => [...prev, { ...rest, status: 'pending' as const }]);
         setTrashContents((prev) => prev.filter((c) => c.id !== contentId));
       }
     }
@@ -578,39 +556,21 @@ export function useLaterIslandState() {
 
   const activeConfirm = confirmDialog;
 
-  const trashItems = [
-    ...trashCategories.map((cat) => ({
-      id: 'cat_' + cat.id,
-      type: 'category' as const,
-      title: settingsLanguage === 'ko' ? `[카테고리] ${cat.name}` : `[Category] ${cat.name}`,
-      summary: settingsLanguage === 'ko' ? '카테고리와 하위 항목들' : 'Category and its items',
-      categoryName: '',
-      tagNames: [],
-    })),
-    ...trashTags.map((t) => ({
-      id: 'tag_' + t.tag.id,
-      type: 'tag' as const,
-      title: settingsLanguage === 'ko' ? `[태그] ${t.tag.name}` : `[Tag] ${t.tag.name}`,
-      summary: settingsLanguage === 'ko' ? '태그' : 'Tag',
-      categoryName: '',
-      tagNames: [],
-    })),
-    ...trashContents.map((c) => {
-      const translation = contentTranslations[settingsLanguage][c.id];
-      const title = translation ? translation.title : c.title;
-      const summary = translation ? translation.summary : c.summary;
-      const categoryName = catMap[c.categoryId ?? ''] || (settingsLanguage === 'ko' ? '미분류' : 'Uncategorized');
-      const tagNames = (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean);
-      return {
-        id: 'content_' + c.id,
-        type: 'content' as const,
-        title,
-        summary,
-        categoryName,
-        tagNames,
-      };
-    }),
-  ];
+  const trashItems = trashContents.map((c) => {
+    const translation = contentTranslations[settingsLanguage][c.id];
+    const title = translation ? translation.title : c.title;
+    const summary = translation ? translation.summary : c.summary;
+    const categoryName = catMap[c.categoryId ?? ''] || c.originalCategoryName || (settingsLanguage === 'ko' ? '미분류' : 'Uncategorized');
+    const tagNames = (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean);
+    return {
+      id: 'content_' + c.id,
+      type: 'content' as const,
+      title,
+      summary,
+      categoryName,
+      tagNames,
+    };
+  });
 
   return {
     // shell / header
