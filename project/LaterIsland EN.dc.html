@@ -115,7 +115,7 @@
       <div data-screen-label="Home">
         <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
           <sc-for list="{{ pendingContents }}" as="item" hint-placeholder-count="3">
-            <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" hint-size="100%,140px"></dc-import>
+            <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" on-uncomplete="{{ item.onUncomplete }}" hint-size="100%,140px"></dc-import>
           </sc-for>
           <sc-if value="{{ isHomeEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="padding:60px 0; text-align:center; opacity:0.4; font-size:13px;">No saved content yet</div>
@@ -161,7 +161,7 @@
           <sc-if value="{{ hasSelectedCategory }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex; flex-direction:column; gap:20px;">
               <sc-for list="{{ categoryFilteredContents }}" as="item" hint-placeholder-count="2">
-                <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" hint-size="100%,140px"></dc-import>
+                <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" on-uncomplete="{{ item.onUncomplete }}" hint-size="100%,140px"></dc-import>
               </sc-for>
             </div>
             <sc-if value="{{ isCategoryFilteredEmpty }}" hint-placeholder-val="{{ false }}">
@@ -291,7 +291,7 @@
           <sc-if value="{{ hasSelectedTag }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex; flex-direction:column; gap:20px;">
               <sc-for list="{{ tagFilteredContents }}" as="item" hint-placeholder-count="2">
-                <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" hint-size="100%,140px"></dc-import>
+                <dc-import name="ContentCard EN" title="{{ item.title }}" summary="{{ item.summary }}" url="{{ item.url }}" category-name="{{ item.categoryName }}" tag-names="{{ item.tagNames }}" status="{{ item.status }}" on-complete="{{ item.onComplete }}" on-uncomplete="{{ item.onUncomplete }}" hint-size="100%,140px"></dc-import>
               </sc-for>
             </div>
             <sc-if value="{{ isTagFilteredEmpty }}" hint-placeholder-val="{{ false }}">
@@ -599,6 +599,12 @@ class Component extends DCLogic {
     }));
   };
 
+  markPending = (id) => {
+    this.setState((prev) => ({
+      contents: prev.contents.map((c) => (c.id === id ? { ...c, status: 'pending' } : c)),
+    }));
+  };
+
   selectCategoryFilter = (id) => this.setState({ selectedCategoryId: id });
   backFromCategory = () => this.setState({ selectedCategoryId: null });
 
@@ -637,13 +643,14 @@ class Component extends DCLogic {
       categoryName: catMap[c.categoryId] || 'Uncategorized',
       tagNames: (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean),
       onComplete: () => this.markDone(c.id),
+      onUncomplete: () => this.markPending(c.id),
     });
 
     const pendingContents = contents.filter((c) => c.status === 'pending').map(enrich);
     const doneContents = contents.filter((c) => c.status === 'done').map(enrich);
 
     const categoryRows = categories.map((cat) => {
-      const count = contents.filter((c) => c.categoryId === cat.id).length;
+      const count = contents.filter((c) => c.categoryId === cat.id && c.status === 'pending').length;
       return {
         id: cat.id,
         name: cat.name,
@@ -654,7 +661,7 @@ class Component extends DCLogic {
     });
     const selectedCategory = categories.find((c) => c.id === selectedCategoryId) || null;
     const categoryFilteredContents = selectedCategoryId
-      ? contents.filter((c) => c.categoryId === selectedCategoryId).map(enrich)
+      ? contents.filter((c) => c.categoryId === selectedCategoryId && c.status === 'pending').map(enrich)
       : [];
 
     const q = (tagSearchQuery || '').trim().toLowerCase();
@@ -663,7 +670,7 @@ class Component extends DCLogic {
       .slice()
       .sort((a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
       .map((t) => {
-        const count = contents.filter((c) => (c.tagIds || []).includes(t.id)).length;
+        const count = contents.filter((c) => (c.tagIds || []).includes(t.id) && c.status === 'pending').length;
         return {
           id: t.id,
           name: t.name,
@@ -674,7 +681,7 @@ class Component extends DCLogic {
       });
     const selectedTag = tags.find((t) => t.id === selectedTagId) || null;
     const tagFilteredContents = selectedTagId
-      ? contents.filter((c) => (c.tagIds || []).includes(selectedTagId)).map(enrich)
+      ? contents.filter((c) => (c.tagIds || []).includes(selectedTagId) && c.status === 'pending').map(enrich)
       : [];
 
     const formCategoryRows = categories.map((cat) => ({

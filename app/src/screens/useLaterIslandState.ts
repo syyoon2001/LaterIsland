@@ -546,13 +546,14 @@ export function useLaterIslandState() {
     categoryName: catMap[c.categoryId ?? ''] || enrichmentCategoryNameFallback,
     tagNames: (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean),
     onComplete: () => markDone(c.id),
+    onUncomplete: () => updateContentItem(c.id, { status: 'pending' }),
   });
 
   const pendingContents = translatedContents.filter((c) => c.status === 'pending').map(enrich);
   const doneContents = translatedContents.filter((c) => c.status === 'done').map(enrich);
 
   const categoryRows = translatedCategories.map((cat) => {
-    const count = translatedContents.filter((c) => c.categoryId === cat.id).length;
+    const count = translatedContents.filter((c) => c.categoryId === cat.id && c.status === 'pending').length;
     return {
       id: cat.id,
       name: cat.name,
@@ -562,14 +563,14 @@ export function useLaterIslandState() {
   });
   const selectedCategory = translatedCategories.find((c) => c.id === selectedCategoryId) || null;
   const categoryFilteredContents = selectedCategoryId
-    ? translatedContents.filter((c) => c.categoryId === selectedCategoryId).map(enrich)
+    ? translatedContents.filter((c) => c.categoryId === selectedCategoryId && c.status === 'pending').map(enrich)
     : [];
 
   const tagRows = translatedTags
     .slice()
     .sort((a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
     .map((t) => {
-      const count = translatedContents.filter((c) => (c.tagIds || []).includes(t.id)).length;
+      const count = translatedContents.filter((c) => (c.tagIds || []).includes(t.id) && c.status === 'pending').length;
       return {
         id: t.id,
         name: t.name,
@@ -579,7 +580,7 @@ export function useLaterIslandState() {
     });
   const selectedTag = translatedTags.find((t) => t.id === selectedTagId) || null;
   const tagFilteredContents = selectedTagId
-    ? translatedContents.filter((c) => (c.tagIds || []).includes(selectedTagId)).map(enrich)
+    ? translatedContents.filter((c) => (c.tagIds || []).includes(selectedTagId) && c.status === 'pending').map(enrich)
     : [];
 
   const formCategoryRows = translatedCategories.map((cat) => ({

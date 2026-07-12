@@ -12,6 +12,7 @@ export interface ContentCardProps {
   tagNames?: string[];
   status?: ContentStatus;
   onComplete?: (() => void) | null;
+  onUncomplete?: (() => void) | null;
   language?: Language;
 
   // Kebab actions
@@ -29,6 +30,7 @@ export function ContentCard({
   tagNames = [],
   status = 'pending',
   onComplete = null,
+  onUncomplete = null,
   language = 'ko',
   onEdit,
   onDelete,
@@ -65,7 +67,15 @@ export function ContentCard({
             {language === 'ko' ? '완료' : 'Mark Done'}
           </button>
         )}
-        {isDone && <div className={styles.doneBadge}>{language === 'ko' ? '완료됨' : 'Done'}</div>}
+        {isDone && (
+          <div 
+            className={styles.doneBadge} 
+            onClick={onUncomplete ?? undefined}
+            style={onUncomplete ? { cursor: 'pointer' } : undefined}
+          >
+            {language === 'ko' ? '완료됨' : 'Done'}
+          </div>
+        )}
       </div>
 
       <div className={styles.chipsRow}>

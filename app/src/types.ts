@@ -56,4 +56,5 @@ export interface EnrichedContent extends ContentItem {
   categoryName: string;
   tagNames: string[];
   onComplete: () => void;
+  onUncomplete?: () => void;
 }

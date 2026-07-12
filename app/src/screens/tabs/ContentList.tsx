@@ -34,6 +34,7 @@ export function ContentList({
           tagNames={item.tagNames}
           status={item.status}
           onComplete={item.onComplete}
+          onUncomplete={item.onUncomplete}
           language={language}
           onEdit={onEditItem ? () => onEditItem(item.id) : undefined}
           onDelete={onDeleteItem ? () => onDeleteItem(item.id) : undefined}

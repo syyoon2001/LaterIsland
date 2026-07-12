@@ -15,7 +15,7 @@
       <button onClick="{{ onCompleteClick }}" style="flex-shrink:0; white-space:nowrap; border:1px solid #E9A773; border-radius:8px; background:#F7F9F2; color:#E9A773; font-size:11px; font-weight:600; padding:6px 10px; cursor:pointer; font-family:inherit;" style-hover="background:#E9A773;color:#fff;">Mark Done</button>
     </sc-if>
     <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
-      <div style="flex-shrink:0; font-size:11px; font-weight:600; border-radius:8px; padding:6px 10px; background:#9CB5B1; color:#fff;">Done</div>
+      <div onClick="{{ onUncompleteClick }}" style="flex-shrink:0; font-size:11px; font-weight:600; border-radius:8px; padding:6px 10px; background:#9CB5B1; color:#fff; cursor:{{ onUncompleteCursor }};">Done</div>
     </sc-if>
   </div>
 
@@ -52,7 +52,8 @@
   &quot;categoryName&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Article&quot;, &quot;tsType&quot;: &quot;string&quot;},
   &quot;tagNames&quot;: {&quot;editor&quot;: null, &quot;default&quot;: [], &quot;tsType&quot;: &quot;string[]&quot;},
   &quot;status&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;pending&quot;, &quot;done&quot;], &quot;default&quot;: &quot;pending&quot;, &quot;tsType&quot;: &quot;string&quot;},
-  &quot;onComplete&quot;: {&quot;editor&quot;: null, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() =&gt; void) | null&quot;}
+  &quot;onComplete&quot;: {&quot;editor&quot;: null, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() =&gt; void) | null&quot;},
+  &quot;onUncomplete&quot;: {&quot;editor&quot;: null, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() =&gt; void) | null&quot;}
 }">
 class Component extends DCLogic {
   copy = () => {
@@ -74,6 +75,8 @@ class Component extends DCLogic {
       showComplete: this.props.status === 'pending' && !!this.props.onComplete,
       isDone: this.props.status === 'done',
       onCompleteClick: this.props.onComplete || (() => {}),
+      onUncompleteClick: this.props.onUncomplete || (() => {}),
+      onUncompleteCursor: this.props.onUncomplete ? 'pointer' : 'default',
       onCopyClick: this.copy,
     };
   }
