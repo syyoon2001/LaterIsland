@@ -65,6 +65,9 @@ export const translations = {
     langEn: 'English',
     logout: '로그아웃',
     deleteAccount: '계정 삭제',
+    dataBackup: '데이터 백업',
+    backingUp: '백업 중...',
+    backupSuccess: '데이터가 성공적으로 백업되었습니다.',
     
     // Confirm Dialogs
     confirmLogoutTitle: '로그아웃 하시겠어요?',
@@ -152,6 +155,9 @@ export const translations = {
     langEn: 'English',
     logout: 'Log Out',
     deleteAccount: 'Delete Account',
+    dataBackup: 'Backup Data',
+    backingUp: 'Backing up...',
+    backupSuccess: 'Data backup completed successfully.',
     
     // Confirm Dialogs
     confirmLogoutTitle: 'Log out?',

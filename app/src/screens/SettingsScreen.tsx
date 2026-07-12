@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { BackButton } from '../components/BackButton';
 import type { Language } from '../types';
 import { translations } from '../data/translations';
 import { useScrollThumb } from './useScrollThumb';
+import { auth, db } from '../lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 interface SettingsScreenProps {
   settingsLanguage: Language;
@@ -27,6 +30,51 @@ export function SettingsScreen({
   const t = translations[settingsLanguage];
   const thumbRef = useScrollThumb('settings-scroll-content');
   const displayName = userDisplayName || userEmail.split('@')[0] || t.profileName;
+
+  const [isBackingUp, setIsBackingUp] = useState(false);
+
+  const handleBackup = async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid || isBackingUp) return;
+
+    setIsBackingUp(true);
+    try {
+      const itemsSnapshot = await getDocs(collection(db, `users/${uid}/items`));
+      const categoriesSnapshot = await getDocs(collection(db, `users/${uid}/categories`));
+      const tagsSnapshot = await getDocs(collection(db, `users/${uid}/tags`));
+
+      const items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const tags = tagsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const backupData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        userId: uid,
+        categories,
+        tags,
+        items
+      };
+
+      const jsonStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `laterisland-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      alert(t.backupSuccess);
+    } catch (err) {
+      console.error('Backup failed:', err);
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
@@ -131,6 +179,19 @@ export function SettingsScreen({
             }}
           >
             {t.logout}
+          </div>
+          <div
+            onClick={handleBackup}
+            style={{
+              padding: '16px 4px',
+              borderBottom: '1px solid rgba(63,82,64,0.12)',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: isBackingUp ? 'default' : 'pointer',
+              color: isBackingUp ? 'rgba(63,82,64,0.5)' : '#3F5240',
+            }}
+          >
+            {isBackingUp ? t.backingUp : t.dataBackup}
           </div>
           <div
             onClick={openDeleteConfirm}
