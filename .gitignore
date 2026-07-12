@@ -6,3 +6,6 @@ dist
 .env.*.local
 app/LaterIsland_private_key.json
 backups/
+
+.vercel
+.env*
