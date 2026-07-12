@@ -16,7 +16,6 @@ interface HeaderProps {
   sortSubmenuOpen: boolean;
   toggleSortSubmenu: () => void;
   sortOrder: SortOrder;
-  sortOrderLabel: string;
   selectSort: (order: SortOrder) => void;
 
   goSettings: () => void;
@@ -46,7 +45,6 @@ export function Header({
   sortSubmenuOpen,
   toggleSortSubmenu,
   sortOrder,
-  sortOrderLabel,
   selectSort,
   goSettings,
   language,
@@ -165,7 +163,7 @@ export function Header({
               border: '1px solid rgba(63,82,64,0.15)',
               borderRadius: 12,
               boxShadow: '0 8px 24px rgba(63,82,64,0.15)',
-              minWidth: 180,
+              minWidth: 140,
               padding: 6,
               overflow: 'hidden',
             }}
@@ -175,20 +173,66 @@ export function Header({
               className={styles.iconButton}
               style={{ ...menuRowStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 'auto', height: 'auto' }}
             >
-              <span>
-                {t.sortBy} {sortSubmenuOpen && <span style={{ opacity: 0.5, fontWeight: 400 }}>· {sortOrderLabel}</span>}
-              </span>
+              <span>{t.sortBy}</span>
               <span style={{ fontSize: 11 }}>{sortSubmenuOpen ? '▲' : '▼'}</span>
             </div>
             {sortSubmenuOpen && (
               <div style={{ display: 'flex', flexDirection: 'column', padding: '2px 4px 2px 14px' }}>
-                <div onClick={() => selectSort('latest')} className={styles.iconButton} style={{ ...sortOptionStyle(sortOrder === 'latest'), width: 'auto', height: 'auto' }}>
+                <div
+                  onClick={() => selectSort('latest')}
+                  className={styles.iconButton}
+                  style={{
+                    ...sortOptionStyle(sortOrder === 'latest'),
+                    width: 'auto',
+                    height: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {sortOrder === 'latest' && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  )}
                   {t.sortLatest}
                 </div>
-                <div onClick={() => selectSort('oldest')} className={styles.iconButton} style={{ ...sortOptionStyle(sortOrder === 'oldest'), width: 'auto', height: 'auto' }}>
+                <div
+                  onClick={() => selectSort('oldest')}
+                  className={styles.iconButton}
+                  style={{
+                    ...sortOptionStyle(sortOrder === 'oldest'),
+                    width: 'auto',
+                    height: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {sortOrder === 'oldest' && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  )}
                   {t.sortOldest}
                 </div>
-                <div onClick={() => selectSort('alpha')} className={styles.iconButton} style={{ ...sortOptionStyle(sortOrder === 'alpha'), width: 'auto', height: 'auto' }}>
+                <div
+                  onClick={() => selectSort('alpha')}
+                  className={styles.iconButton}
+                  style={{
+                    ...sortOptionStyle(sortOrder === 'alpha'),
+                    width: 'auto',
+                    height: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {sortOrder === 'alpha' && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  )}
                   {t.sortAlpha}
                 </div>
               </div>

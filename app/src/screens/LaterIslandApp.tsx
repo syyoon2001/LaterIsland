@@ -33,7 +33,6 @@ export function LaterIslandApp() {
             sortSubmenuOpen={s.sortSubmenuOpen}
             toggleSortSubmenu={s.toggleSortSubmenu}
             sortOrder={s.sortOrder}
-            sortOrderLabel={s.sortOrderLabel}
             selectSort={s.selectSort}
             goSettings={s.goSettings}
             language={s.settingsLanguage}
