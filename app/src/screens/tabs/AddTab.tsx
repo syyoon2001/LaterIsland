@@ -100,38 +100,14 @@ export function AddTab({
   return (
     <div data-screen-label={pageTitle}>
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* title + AI Autofill row */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>{t.formTitleLabel}</label>
-            <input value={form.title} onChange={(e) => setFormTitle(e.target.value)} placeholder={t.formTitlePlaceholder} style={inputStyle} />
-          </div>
-          <button
-            onClick={generateAI}
-            disabled={aiLoadingStatus !== 'idle'}
-            style={{
-              height: 41,
-              width: 170,
-              padding: '0 16px',
-              border: 'none',
-              borderRadius: 10,
-              background: '#6E8C6A',
-              color: '#fff',
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: aiLoadingStatus !== 'idle' ? 'default' : 'pointer',
-              opacity: aiLoadingStatus !== 'idle' ? 0.7 : 1,
-              transition: 'opacity 0.2s',
-              textAlign: 'center',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {aiLoadingStatus === 'fetching' 
-              ? (language === 'ko' ? '페이지 불러오는 중...' : 'Fetching page...') 
-              : aiLoadingStatus === 'generating' 
-                ? (language === 'ko' ? '요약 생성 중...' : 'Generating...')
-                : (language === 'ko' ? '✦ AI 자동생성' : '✦ AI Autofill')}
-          </button>
+        <div>
+          <label style={labelStyle}>{t.formTitleLabel}</label>
+          <input
+            value={form.title}
+            onChange={(e) => setFormTitle(e.target.value)}
+            placeholder={t.formTitlePlaceholder}
+            style={inputStyle}
+          />
         </div>
 
         <div>
@@ -363,20 +339,27 @@ export function AddTab({
           <button
             type="button"
             onClick={generateAI}
+            disabled={aiLoadingStatus !== 'idle'}
             style={{
               width: '100%',
               border: '1px solid #6E8C6A',
               borderRadius: 10,
               padding: 14,
-              background: '#F7F9F2',
-              color: '#6E8C6A',
+              background: aiLoadingStatus !== 'idle' ? '#6E8C6A' : '#F7F9F2',
+              color: aiLoadingStatus !== 'idle' ? '#fff' : '#6E8C6A',
               fontSize: 14,
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: aiLoadingStatus !== 'idle' ? 'default' : 'pointer',
+              opacity: aiLoadingStatus !== 'idle' ? 0.8 : 1,
               fontFamily: 'inherit',
+              transition: 'all 0.2s',
             }}
           >
-            {t.formAiAutofill}
+            {aiLoadingStatus === 'fetching' 
+              ? (language === 'ko' ? '페이지 불러오는 중...' : 'Fetching page...') 
+              : aiLoadingStatus === 'generating' 
+                ? (language === 'ko' ? '요약 생성 중...' : 'Generating...')
+                : t.formAiAutofill}
           </button>
         )}
 
