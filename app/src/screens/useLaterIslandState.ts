@@ -404,10 +404,11 @@ export function useLaterIslandState() {
     // 2. Generate Metadata
     setAiLoadingStatus('generating');
     try {
+      const existingTags = rawTags.filter(t => !t.isDeleted).map(t => t.name);
       const res = await fetch('/api/ai/generate-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, link: url, summary: textToAnalyze }),
+        body: JSON.stringify({ title, link: url, summary: textToAnalyze, existingTags }),
       });
       if (!res.ok) throw new Error('API Error');
       const data = await res.json();

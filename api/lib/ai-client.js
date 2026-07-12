@@ -13,13 +13,19 @@ function getClient() {
   return genAI;
 }
 
-export async function generateMetadata({ title, summary, link }) {
+export async function generateMetadata({ title, summary, link, existingTags }) {
   const client = getClient();
-  const modelName = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
+  const modelName = process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash';
   
+  let systemInstruction = "You are a helpful assistant. Analyze the given content (title, summary, link) and extract the best title, a concise summary, a single category (among: Book, Webtoon, Drama, Video, Article, Other), and an array of up to 3 relevant tags. Return the result strictly as a valid JSON object matching this schema: { \"title\": \"string\", \"summary\": \"string\", \"category\": \"string\", \"tags\": [\"string\"] }. Do not include markdown code blocks, just output the raw JSON.\n\nIMPORTANT INSTRUCTIONS FOR TAGS:\n1. Tags should NOT be highly specific to this single content (e.g., avoid \"겨드랑이색소침착\", \"화요일아침루틴\"). Instead, generate general, reusable subject/category-level tags (e.g., \"바디케어\", \"뷰티팁\", \"생활습관\").";
+
+  if (existingTags && Array.isArray(existingTags) && existingTags.length > 0) {
+    systemInstruction += `\n2. The user already uses the following tags: ${JSON.stringify(existingTags)}. If any of these existing tags fit the content's meaning and subject, you MUST prioritize reusing them. ONLY generate new general tags if absolutely none of the existing tags are appropriate.`;
+  }
+
   const model = client.getGenerativeModel({
     model: modelName,
-    systemInstruction: "You are a helpful assistant. Analyze the given content (title, summary, link) and extract the best title, a concise summary, a single category (among: Book, Webtoon, Drama, Video, Article, Other), and an array of up to 3 relevant tags. Return the result strictly as a valid JSON object matching this schema: { \"title\": \"string\", \"summary\": \"string\", \"category\": \"string\", \"tags\": [\"string\"] }. Do not include markdown code blocks, just output the raw JSON."
+    systemInstruction
   });
 
   const prompt = `Title: ${title || 'N/A'}\nSummary: ${summary || 'N/A'}\nLink: ${link || 'N/A'}\n\nPlease generate the JSON metadata.`;

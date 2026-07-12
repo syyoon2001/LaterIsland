@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
 
-  const { title, summary, link } = req.body || {};
+  const { title, summary, link, existingTags } = req.body || {};
 
   // Require at least one of the inputs to generate metadata
   if (!title && !summary && !link) {
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const metadata = await generateMetadata({ title, summary, link });
+    const metadata = await generateMetadata({ title, summary, link, existingTags });
     return res.status(200).json(metadata);
   } catch (error) {
     console.error('generate-metadata error:', error);
