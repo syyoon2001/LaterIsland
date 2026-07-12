@@ -54,6 +54,9 @@ export const translations = {
     doneTitle: '완료함',
     doneEmpty: '완료한 콘텐츠가 없어요',
     
+    // Generic
+    listEmpty: '아직 등록된 항목이 없어요',
+
     // SettingsScreen
     profileName: '나중에',
     settingsLanguageLabel: '언어',
@@ -136,6 +139,9 @@ export const translations = {
     doneTitle: 'Done',
     doneEmpty: 'No completed content yet',
     
+    // Generic
+    listEmpty: 'No items added yet',
+
     // SettingsScreen
     profileName: 'Alex Kim',
     settingsLanguageLabel: 'Language',

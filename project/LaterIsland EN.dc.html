@@ -141,7 +141,13 @@
           </sc-if>
 
           <sc-if value="{{ categoryListView }}" hint-placeholder-val="{{ true }}">
-            <sc-for list="{{ categoryRows }}" as="cat" hint-placeholder-count="5">
+            <sc-if value="{{ isCategoryListEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:60px 0; text-align:center; opacity:0.4; font-size:13px;">
+                No items added yet
+              </div>
+            </sc-if>
+            <sc-if value="{{ isCategoryListEmpty == false }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ categoryRows }}" as="cat" hint-placeholder-count="5">
               <div onClick="{{ cat.onSelect }}" style="display:flex; justify-content:space-between; align-items:center; padding:16px 4px; border-bottom:1px solid rgba(63,82,64,0.12); cursor:pointer;">
                 <div style="font-size:15px; font-weight:600;">{{ cat.name }}</div>
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -149,7 +155,8 @@
                   <div style="font-size:14px;">→</div>
                 </div>
               </div>
-            </sc-for>
+              </sc-for>
+            </sc-if>
           </sc-if>
           <sc-if value="{{ hasSelectedCategory }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex; flex-direction:column; gap:20px;">
@@ -264,7 +271,13 @@
         </div>
         <div style="padding:0 20px 20px;">
           <sc-if value="{{ tagListView }}" hint-placeholder-val="{{ true }}">
-            <sc-for list="{{ tagRows }}" as="tag" hint-placeholder-count="5">
+            <sc-if value="{{ isTagListEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:60px 0; text-align:center; opacity:0.4; font-size:13px;">
+                No items added yet
+              </div>
+            </sc-if>
+            <sc-if value="{{ isTagListEmpty == false }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ tagRows }}" as="tag" hint-placeholder-count="6">
               <div onClick="{{ tag.onSelect }}" style="display:flex; justify-content:space-between; align-items:center; padding:16px 4px; border-bottom:1px solid rgba(63,82,64,0.12); cursor:pointer;">
                 <div style="font-size:15px; font-weight:600;">#{{ tag.name }}</div>
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -272,7 +285,8 @@
                   <div style="font-size:14px;">→</div>
                 </div>
               </div>
-            </sc-for>
+              </sc-for>
+            </sc-if>
           </sc-if>
           <sc-if value="{{ hasSelectedTag }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex; flex-direction:column; gap:20px;">
@@ -429,32 +443,9 @@ class Component extends DCLogic {
     settingsLanguage: 'ko',
     confirmDialog: null,
     activeTab: 'home',
-    categories: [
-      { id: 'c1', name: 'Book', createdBy: 'user' },
-      { id: 'c2', name: 'Webtoon', createdBy: 'user' },
-      { id: 'c3', name: 'Drama', createdBy: 'user' },
-      { id: 'c4', name: 'Video', createdBy: 'user' },
-      { id: 'c5', name: 'Article', createdBy: 'user' },
-      { id: 'c6', name: 'Other', createdBy: 'user' },
-    ],
-    tags: [
-      { id: 't1', name: 'Finance', createdBy: 'user', lastUsedAt: 6 },
-      { id: 't2', name: 'Self-growth', createdBy: 'user', lastUsedAt: 5 },
-      { id: 't3', name: 'Wellness', createdBy: 'user', lastUsedAt: 4 },
-      { id: 't4', name: 'Dev', createdBy: 'user', lastUsedAt: 3 },
-      { id: 't5', name: 'Design', createdBy: 'user', lastUsedAt: 2 },
-      { id: 't6', name: 'Parenting', createdBy: 'user', lastUsedAt: 1 },
-    ],
-    contents: [
-      { id: 'ct1', sourceType: 'link', title: 'One Year After Quitting: My FIRE Journey', url: 'https://example.com/fire-story', summary: '', categoryId: 'c5', tagIds: ['t1', 't2'], status: 'pending' },
-      { id: 'ct2', sourceType: 'manual', title: 'One Piece Episode 1100', url: null, summary: '', categoryId: 'c2', tagIds: [], status: 'pending' },
-      { id: 'ct3', sourceType: 'link', title: 'A Practical Guide to Building Design Systems', url: 'https://example.com/design-system', summary: 'From token design to component documentation', categoryId: 'c5', tagIds: ['t5'], status: 'pending' },
-      { id: 'ct4', sourceType: 'link', title: 'Popular Finance YouTubers Right Now', url: 'https://youtube.com/watch?v=abc', summary: '', categoryId: 'c4', tagIds: ['t1'], status: 'pending' },
-      { id: 'ct5', sourceType: 'manual', title: 'Sapiens', url: null, summary: '', categoryId: 'c1', tagIds: ['t2'], status: 'done' },
-      { id: 'ct6', sourceType: 'link', title: 'A Letter from the Future (Drama)', url: 'https://example.com/drama-ep1', summary: '', categoryId: 'c3', tagIds: ['t3'], status: 'pending' },
-      { id: 'ct7', sourceType: 'link', title: 'Time Management for Developers', url: 'https://example.com/dev-time', summary: 'Comparing Pomodoro and time-blocking', categoryId: 'c5', tagIds: ['t4', 't2'], status: 'done' },
-      { id: 'ct8', sourceType: 'manual', title: 'What to Know Before Parental Leave', url: null, summary: '', categoryId: 'c5', tagIds: ['t6'], status: 'pending' },
-    ],
+    categories: [],
+    tags: [],
+    contents: [],
     clickCounter: 6,
     form: { title: '', url: '', summary: '', categoryId: null, tagIds: [] },
     categoryDropdownOpen: false,
@@ -793,6 +784,7 @@ class Component extends DCLogic {
       isDoneEmpty: doneContents.length === 0,
 
       categoryRows,
+      isCategoryListEmpty: categoryRows.length === 0,
       hasSelectedCategory: !!selectedCategory,
       categoryListView: !selectedCategory,
       selectedCategoryName: selectedCategory ? selectedCategory.name : '',
@@ -803,6 +795,7 @@ class Component extends DCLogic {
       tagSearchQuery,
       onTagSearchChange: this.onTagSearchChange,
       tagRows,
+      isTagListEmpty: tagRows.length === 0,
       hasSelectedTag: !!selectedTag,
       tagListView: !selectedTag,
       selectedTagName: selectedTag ? selectedTag.name : '',

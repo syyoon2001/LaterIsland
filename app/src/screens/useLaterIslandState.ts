@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { seedCategories, seedContents, seedTags } from '../data/seed';
+
 import type {
   Category,
   ConfirmDialogType,
@@ -70,9 +70,9 @@ export function useLaterIslandState() {
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogType>(null);
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
-  const [categories, setCategories] = useState<Category[]>(seedCategories);
-  const [tags, setTags] = useState<Tag[]>(seedTags);
-  const [contents, setContents] = useState<ContentItem[]>(seedContents);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [contents, setContents] = useState<ContentItem[]>([]);
   const [clickCounter, setClickCounter] = useState(6);
 
   const [form, setForm] = useState<ContentForm>(emptyForm);

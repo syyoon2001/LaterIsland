@@ -57,7 +57,12 @@ export function CategoryTab({
 
         {!selectedCategory && (
           <div>
-            {categoryRows.map((cat) => (
+            {categoryRows.length === 0 ? (
+              <div style={{ padding: '60px 0', textAlign: 'center', opacity: 0.4, fontSize: 13 }}>
+                {t.listEmpty}
+              </div>
+            ) : (
+              categoryRows.map((cat) => (
               <div
                 key={cat.id}
                 onClick={editingCategoryId === cat.id ? undefined : cat.onSelect}
@@ -219,7 +224,8 @@ export function CategoryTab({
                   <div style={{ fontSize: 14 }}>→</div>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
         )}
 

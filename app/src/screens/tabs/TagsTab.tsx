@@ -58,7 +58,12 @@ export function TagsTab({
       <div style={{ padding: '0 20px 20px' }}>
         {!selectedTag && (
           <div>
-            {tagRows.map((tag) => (
+            {tagRows.length === 0 ? (
+              <div style={{ padding: '60px 0', textAlign: 'center', opacity: 0.4, fontSize: 13 }}>
+                {t.listEmpty}
+              </div>
+            ) : (
+              tagRows.map((tag) => (
               <div
                 key={tag.id}
                 onClick={editingTagId === tag.id ? undefined : tag.onSelect}
@@ -220,7 +225,8 @@ export function TagsTab({
                   <div style={{ fontSize: 14 }}>→</div>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
         )}
 
