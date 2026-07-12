@@ -13,7 +13,7 @@ export interface Tag {
   lastUsedAt: number;
 }
 
-export type ContentStatus = 'pending' | 'done';
+export type ContentStatus = 'pending' | 'done' | 'trash';
 export type SourceType = 'link' | 'manual';
 
 export interface ContentItem {
@@ -39,7 +39,15 @@ export type SortOrder = 'latest' | 'oldest' | 'alpha';
 
 export type Tab = 'home' | 'category' | 'add' | 'tags' | 'done';
 
-export type ConfirmDialogType = 'logout' | 'delete' | null;
+export interface DynamicConfirmDialog {
+  title: string;
+  body?: string;
+  actionLabel: string;
+  color: string;
+  onConfirm: () => void;
+}
+
+export type ConfirmDialogType = DynamicConfirmDialog | null;
 
 export type Language = 'ko' | 'en';
 

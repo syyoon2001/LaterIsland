@@ -2,6 +2,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { PhoneFrame } from '../components/PhoneFrame';
 import { Header } from './Header';
 import { SettingsScreen } from './SettingsScreen';
+import { TrashScreen } from './TrashScreen';
 import { TabBar } from './TabBar';
 import { AddTab } from './tabs/AddTab';
 import { CategoryTab } from './tabs/CategoryTab';
@@ -19,7 +20,7 @@ export function LaterIslandApp() {
 
   return (
     <PhoneFrame background="#E6F1E3" language={s.settingsLanguage}>
-      {!s.showSettings && (
+      {!s.showSettings && !s.showTrash && (
         <div style={{ position: 'absolute', inset: 0 }}>
           <Header
             searchOpen={s.searchOpen}
@@ -36,10 +37,24 @@ export function LaterIslandApp() {
             selectSort={s.selectSort}
             goSettings={s.goSettings}
             language={s.settingsLanguage}
+            isEditMode={s.isEditMode}
+            setIsEditMode={s.setIsEditMode}
+            setShowTrash={s.setShowTrash}
           />
 
           <div id={SCROLL_EL_ID} style={{ position: 'absolute', top: 76, left: 0, right: 0, bottom: 76, overflowY: 'auto' }}>
-            {s.activeTab === 'home' && <HomeTab pendingContents={s.pendingContents} language={s.settingsLanguage} />}
+            {s.activeTab === 'home' && (
+              <HomeTab
+                pendingContents={s.pendingContents}
+                language={s.settingsLanguage}
+                isEditMode={s.isEditMode}
+                selectedContentIds={s.selectedContentIds}
+                setSelectedContentIds={s.setSelectedContentIds}
+                onDeleteSelected={(ids) => s.openConfirmDeleteSelected(ids, false)}
+                onExitEditMode={() => s.setIsEditMode(false)}
+                onUpdateContent={s.updateContentItem}
+              />
+            )}
             {s.activeTab === 'category' && (
               <CategoryTab
                 categoryRows={s.categoryRows}
@@ -47,6 +62,14 @@ export function LaterIslandApp() {
                 categoryFilteredContents={s.categoryFilteredContents}
                 backFromCategory={s.backFromCategory}
                 language={s.settingsLanguage}
+                isEditMode={s.isEditMode}
+                selectedContentIds={s.selectedContentIds}
+                setSelectedContentIds={s.setSelectedContentIds}
+                onDeleteSelected={(ids) => s.openConfirmDeleteSelected(ids, false)}
+                onExitEditMode={() => s.setIsEditMode(false)}
+                onUpdateContent={s.updateContentItem}
+                onUpdateCategoryName={s.updateCategoryName}
+                onDeleteCategory={s.openConfirmDeleteCategory}
               />
             )}
             {s.activeTab === 'add' && (
@@ -81,9 +104,28 @@ export function LaterIslandApp() {
                 tagFilteredContents={s.tagFilteredContents}
                 backFromTag={s.backFromTag}
                 language={s.settingsLanguage}
+                isEditMode={s.isEditMode}
+                selectedContentIds={s.selectedContentIds}
+                setSelectedContentIds={s.setSelectedContentIds}
+                onDeleteSelected={(ids) => s.openConfirmDeleteSelected(ids, false)}
+                onExitEditMode={() => s.setIsEditMode(false)}
+                onUpdateContent={s.updateContentItem}
+                onUpdateTagName={s.updateTagName}
+                onDeleteTag={s.openConfirmDeleteTag}
               />
             )}
-            {s.activeTab === 'done' && <DoneTab doneContents={s.doneContents} language={s.settingsLanguage} />}
+            {s.activeTab === 'done' && (
+              <DoneTab
+                doneContents={s.doneContents}
+                language={s.settingsLanguage}
+                isEditMode={s.isEditMode}
+                selectedContentIds={s.selectedContentIds}
+                setSelectedContentIds={s.setSelectedContentIds}
+                onDeleteSelected={(ids) => s.openConfirmDeleteSelected(ids, false)}
+                onExitEditMode={() => s.setIsEditMode(false)}
+                onUpdateContent={s.updateContentItem}
+              />
+            )}
           </div>
 
           <div
@@ -114,18 +156,27 @@ export function LaterIslandApp() {
         />
       )}
 
+      {s.showTrash && (
+        <TrashScreen
+          language={s.settingsLanguage}
+          onBack={() => s.setShowTrash(false)}
+          trashItems={s.trashItems}
+          restoreTrashItem={s.restoreTrashItem}
+          openConfirmDeleteSelected={s.openConfirmDeleteSelected}
+        />
+      )}
+
       {s.activeConfirm && (
         <ConfirmDialog
           title={s.activeConfirm.title}
-          body={s.activeConfirm.body}
+          body={s.activeConfirm.body ?? ''}
           actionLabel={s.activeConfirm.actionLabel}
           color={s.activeConfirm.color}
           onCancel={s.closeConfirm}
-          onConfirm={s.closeConfirm}
+          onConfirm={s.activeConfirm.onConfirm}
           language={s.settingsLanguage}
         />
       )}
     </PhoneFrame>
   );
-
 }

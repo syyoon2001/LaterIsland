@@ -20,6 +20,10 @@ interface HeaderProps {
 
   goSettings: () => void;
   language: Language;
+
+  isEditMode: boolean;
+  setIsEditMode: (v: boolean) => void;
+  setShowTrash: (v: boolean) => void;
 }
 
 const sortOptionStyle = (active: boolean) => ({
@@ -48,6 +52,9 @@ export function Header({
   selectSort,
   goSettings,
   language,
+  isEditMode: _isEditMode,
+  setIsEditMode,
+  setShowTrash,
 }: HeaderProps) {
   const t = translations[language];
 
@@ -240,8 +247,25 @@ export function Header({
                 </div>
               </div>
             )}
-            <div onClick={closeMenu} className={styles.iconButton} style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}>
+            <div
+              onClick={() => {
+                setIsEditMode(true);
+                closeMenu();
+              }}
+              className={styles.iconButton}
+              style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}
+            >
               {t.edit}
+            </div>
+            <div
+              onClick={() => {
+                setShowTrash(true);
+                closeMenu();
+              }}
+              className={styles.iconButton}
+              style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}
+            >
+              {t.trash}
             </div>
             <div style={{ height: 1, background: 'rgba(63,82,64,0.12)', margin: '4px 6px' }} />
             <div onClick={goSettings} className={styles.iconButton} style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}>

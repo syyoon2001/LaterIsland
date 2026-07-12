@@ -70,6 +70,17 @@ export const translations = {
     confirmDeleteBody: '삭제하면 저장된 모든 콘텐츠가 영구적으로 사라지며 복구할 수 없어요.',
     confirmDeleteAction: '삭제',
     confirmCancel: '취소',
+
+    // New Trash & Edit keys
+    trash: '휴지통',
+    selectAll: '전체 선택',
+    delete: '삭제',
+    restore: '복구',
+    confirmDeleteSelectedTitle: (count: number) => `선택한 ${count}개 항목을 삭제하시겠습니까?`,
+    confirmDeleteSingleTitle: '이 항목을 삭제하시겠습니까?',
+    confirmDeleteTagTitle: (name: string) => `'#${name}' 태그를 삭제하시겠습니까?`,
+    confirmDeleteCategoryTitle: '이 카테고리를 삭제하시겠습니까?',
+    confirmDeletePermanentlyTitle: '완전히 삭제하시겠습니까?',
   },
   en: {
     tabHome: 'Home',
@@ -140,6 +151,17 @@ export const translations = {
     confirmDeleteBody: 'This permanently removes all your saved content and cannot be undone.',
     confirmDeleteAction: 'Delete',
     confirmCancel: 'Cancel',
+
+    // New Trash & Edit keys
+    trash: 'Trash',
+    selectAll: 'Select All',
+    delete: 'Delete',
+    restore: 'Restore',
+    confirmDeleteSelectedTitle: (count: number) => `Delete ${count} selected items?`,
+    confirmDeleteSingleTitle: 'Delete this item?',
+    confirmDeleteTagTitle: (name: string) => `Delete '#${name}' tag?`,
+    confirmDeleteCategoryTitle: 'Delete this category?',
+    confirmDeletePermanentlyTitle: 'Delete permanently?',
   },
 };
 

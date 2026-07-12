@@ -84,6 +84,14 @@ export function useLaterIslandState() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
 
+  // New Edit and Trash states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
+  const [trashContents, setTrashContents] = useState<ContentItem[]>([]);
+  const [trashCategories, setTrashCategories] = useState<Category[]>([]);
+  const [trashTags, setTrashTags] = useState<{ tag: Tag; originalItemIds: string[] }[]>([]);
+  const [selectedContentIds, setSelectedContentIds] = useState<string[]>([]);
+
   useEffect(() => {
     const handleJump = (e: any) => {
       const { target, lang } = e.detail;
@@ -91,8 +99,13 @@ export function useLaterIslandState() {
       if (['home', 'category', 'add', 'tags', 'done'].includes(target)) {
         setActiveTab(target as Tab);
         setShowSettings(false);
+        setShowTrash(false);
       } else if (target === 'settings') {
         setShowSettings(true);
+        setShowTrash(false);
+      } else if (target === 'trash') {
+        setShowTrash(true);
+        setShowSettings(false);
       }
     };
     window.addEventListener('simulation-jump', handleJump);
@@ -100,8 +113,18 @@ export function useLaterIslandState() {
   }, []);
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent('simulation-sync', { detail: { screen: 'app', activeTab, showSettings, settingsLanguage } }));
-  }, [activeTab, showSettings, settingsLanguage]);
+    window.dispatchEvent(
+      new CustomEvent('simulation-sync', {
+        detail: {
+          screen: 'app',
+          activeTab,
+          showSettings,
+          showTrash,
+          settingsLanguage,
+        },
+      })
+    );
+  }, [activeTab, showSettings, showTrash, settingsLanguage]);
 
   const setTab = (tab: Tab) => {
     setActiveTab(tab);
@@ -139,7 +162,25 @@ export function useLaterIslandState() {
   };
   const backFromSettings = () => setShowSettings(false);
 
-  const openConfirm = (type: 'logout' | 'delete') => setConfirmDialog(type);
+  const openConfirm = (type: 'logout' | 'delete') => {
+    if (type === 'logout') {
+      setConfirmDialog({
+        title: translations[settingsLanguage].confirmLogoutTitle,
+        body: translations[settingsLanguage].confirmLogoutBody,
+        actionLabel: translations[settingsLanguage].confirmLogoutAction,
+        color: '#6E8C6A',
+        onConfirm: () => setConfirmDialog(null),
+      });
+    } else {
+      setConfirmDialog({
+        title: translations[settingsLanguage].confirmDeleteTitle,
+        body: translations[settingsLanguage].confirmDeleteBody,
+        actionLabel: translations[settingsLanguage].confirmDeleteAction,
+        color: '#B15C4A',
+        onConfirm: () => setConfirmDialog(null),
+      });
+    }
+  };
   const closeConfirm = () => setConfirmDialog(null);
 
   const toggleCategoryDropdown = () => setCategoryDropdownOpen((v) => !v);
@@ -239,6 +280,156 @@ export function useLaterIslandState() {
     setSelectedTagId(id);
   };
   const backFromTag = () => setSelectedTagId(null);
+
+  const openConfirmDeleteCategory = (cat: Category) => {
+    const t = translations[settingsLanguage];
+    setConfirmDialog({
+      title: t.confirmDeleteCategoryTitle,
+      actionLabel: t.delete,
+      color: '#B15C4A',
+      onConfirm: () => {
+        setCategories((prev) => prev.filter((x) => x.id !== cat.id));
+        setTrashCategories((prev) => [...prev, cat]);
+        // Move all contents in this category to trash
+        const contentsInCat = contents.filter((c) => c.categoryId === cat.id);
+        setContents((prev) => prev.filter((c) => c.categoryId !== cat.id));
+        setTrashContents((prev) => [...prev, ...contentsInCat.map((c) => ({ ...c, status: 'trash' as const }))]);
+        setConfirmDialog(null);
+      },
+    });
+  };
+
+  const openConfirmDeleteTag = (tag: Tag) => {
+    const t = translations[settingsLanguage];
+    const titleText = typeof t.confirmDeleteTagTitle === 'function'
+      ? t.confirmDeleteTagTitle(tag.name)
+      : `'#${tag.name}' 태그를 삭제하시겠습니까?`;
+    setConfirmDialog({
+      title: titleText,
+      actionLabel: t.delete,
+      color: '#B15C4A',
+      onConfirm: () => {
+        setTags((prev) => prev.filter((x) => x.id !== tag.id));
+        const itemIdsWithTag = contents.filter((c) => c.tagIds.includes(tag.id)).map((c) => c.id);
+        setContents((prev) =>
+          prev.map((c) => ({
+            ...c,
+            tagIds: c.tagIds.filter((x) => x !== tag.id),
+          }))
+        );
+        setTrashTags((prev) => [...prev, { tag, originalItemIds: itemIdsWithTag }]);
+        setConfirmDialog(null);
+      },
+    });
+  };
+
+  const openConfirmDeleteSelected = (selectedIds: string[], isTrashScreen: boolean) => {
+    const t = translations[settingsLanguage];
+    const isSingle = selectedIds.length === 1;
+    const titleText = isTrashScreen
+      ? t.confirmDeletePermanentlyTitle
+      : (isSingle
+        ? t.confirmDeleteSingleTitle
+        : (typeof t.confirmDeleteSelectedTitle === 'function' ? t.confirmDeleteSelectedTitle(selectedIds.length) : `선택한 ${selectedIds.length}개 항목을 삭제하시겠습니까?`));
+
+    setConfirmDialog({
+      title: titleText,
+      actionLabel: t.delete,
+      color: '#B15C4A',
+      onConfirm: () => {
+        if (isTrashScreen) {
+          selectedIds.forEach((id) => {
+            if (id.startsWith('cat_')) {
+              const catId = id.replace('cat_', '');
+              setTrashCategories((prev) => prev.filter((c) => c.id !== catId));
+            } else if (id.startsWith('tag_')) {
+              const tagId = id.replace('tag_', '');
+              setTrashTags((prev) => prev.filter((x) => x.tag.id !== tagId));
+            } else if (id.startsWith('content_')) {
+              const contentId = id.replace('content_', '');
+              setTrashContents((prev) => prev.filter((c) => c.id !== contentId));
+            }
+          });
+        } else {
+          const toDelete = contents.filter((c) => selectedIds.includes(c.id));
+          setContents((prev) => prev.filter((c) => !selectedIds.includes(c.id)));
+          setTrashContents((prev) => [...prev, ...toDelete.map((c) => ({ ...c, status: 'trash' as const }))]);
+        }
+        setSelectedContentIds([]);
+        setConfirmDialog(null);
+      },
+    });
+  };
+
+  const restoreTrashItem = (id: string) => {
+    if (id.startsWith('cat_')) {
+      const catId = id.replace('cat_', '');
+      const cat = trashCategories.find((c) => c.id === catId);
+      if (cat) {
+        setCategories((prev) => [...prev, cat]);
+        setTrashCategories((prev) => prev.filter((c) => c.id !== catId));
+        // Restore all contents with this categoryId that are in trash
+        const itemsToRestore = trashContents.filter((c) => c.categoryId === catId);
+        setTrashContents((prev) => prev.filter((c) => c.categoryId !== catId));
+        setContents((prev) => [...prev, ...itemsToRestore.map((c) => ({ ...c, status: 'pending' as const }))]);
+      }
+    } else if (id.startsWith('tag_')) {
+      const tagId = id.replace('tag_', '');
+      const trashTagItem = trashTags.find((t) => t.tag.id === tagId);
+      if (trashTagItem) {
+        setTags((prev) => [...prev, trashTagItem.tag]);
+        setTrashTags((prev) => prev.filter((t) => t.tag.id !== tagId));
+        // Restore tag back to its original items
+        setContents((prev) =>
+          prev.map((c) => {
+            if (trashTagItem.originalItemIds.includes(c.id)) {
+              return {
+                ...c,
+                tagIds: c.tagIds.includes(tagId) ? c.tagIds : [...c.tagIds, tagId],
+              };
+            }
+            return c;
+          })
+        );
+      }
+    } else if (id.startsWith('content_')) {
+      const contentId = id.replace('content_', '');
+      const content = trashContents.find((c) => c.id === contentId);
+      if (content) {
+        setContents((prev) => [...prev, { ...content, status: 'pending' as const }]);
+        setTrashContents((prev) => prev.filter((c) => c.id !== contentId));
+      }
+    }
+  };
+
+  const updateContentItem = (id: string, fields: Partial<ContentItem>) => {
+    setContents((prev) => prev.map((c) => (c.id === id ? { ...c, ...fields } : c)));
+  };
+
+  const updateContentTags = (id: string, tagNames: string[]) => {
+    let nextTags = tags;
+    let clickCount = clickCounter;
+    const tagIds = tagNames
+      .map((name) => {
+        clickCount += 1;
+        const res = findOrCreateTag(nextTags, name, clickCount);
+        nextTags = res.tags;
+        return res.id;
+      })
+      .filter(Boolean) as string[];
+
+    setTags(nextTags);
+    setClickCounter(clickCount);
+    setContents((prev) => prev.map((c) => (c.id === id ? { ...c, tagIds } : c)));
+  };
+
+  const updateCategoryName = (id: string, newName: string) => {
+    setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, name: newName } : c)));
+  };
+
+  const updateTagName = (id: string, newName: string) => {
+    setTags((prev) => prev.map((t) => (t.id === id ? { ...t, name: newName } : t)));
+  };
 
   // --- derived values (mirrors renderVals in the original prototype) ---
 
@@ -341,21 +532,41 @@ export function useLaterIslandState() {
     alpha: translations[settingsLanguage].sortAlpha,
   };
 
-  const confirmMeta = {
-    logout: {
-      title: translations[settingsLanguage].confirmLogoutTitle,
-      body: translations[settingsLanguage].confirmLogoutBody,
-      actionLabel: translations[settingsLanguage].confirmLogoutAction,
-      color: '#6E8C6A',
-    },
-    delete: {
-      title: translations[settingsLanguage].confirmDeleteTitle,
-      body: translations[settingsLanguage].confirmDeleteBody,
-      actionLabel: translations[settingsLanguage].confirmDeleteAction,
-      color: '#B15C4A',
-    },
-  };
-  const activeConfirm = confirmDialog ? confirmMeta[confirmDialog] : null;
+  const activeConfirm = confirmDialog;
+
+  const trashItems = [
+    ...trashCategories.map((cat) => ({
+      id: 'cat_' + cat.id,
+      type: 'category' as const,
+      title: settingsLanguage === 'ko' ? `[카테고리] ${cat.name}` : `[Category] ${cat.name}`,
+      summary: settingsLanguage === 'ko' ? '카테고리와 하위 항목들' : 'Category and its items',
+      categoryName: '',
+      tagNames: [],
+    })),
+    ...trashTags.map((t) => ({
+      id: 'tag_' + t.tag.id,
+      type: 'tag' as const,
+      title: settingsLanguage === 'ko' ? `[태그] ${t.tag.name}` : `[Tag] ${t.tag.name}`,
+      summary: settingsLanguage === 'ko' ? '태그' : 'Tag',
+      categoryName: '',
+      tagNames: [],
+    })),
+    ...trashContents.map((c) => {
+      const translation = contentTranslations[settingsLanguage][c.id];
+      const title = translation ? translation.title : c.title;
+      const summary = translation ? translation.summary : c.summary;
+      const categoryName = catMap[c.categoryId ?? ''] || (settingsLanguage === 'ko' ? '미분류' : 'Uncategorized');
+      const tagNames = (c.tagIds || []).map((id) => tagMap[id]).filter(Boolean);
+      return {
+        id: 'content_' + c.id,
+        type: 'content' as const,
+        title,
+        summary,
+        categoryName,
+        tagNames,
+      };
+    }),
+  ];
 
   return {
     // shell / header
@@ -429,6 +640,23 @@ export function useLaterIslandState() {
 
     generateAI,
     saveContent,
+
+    // edit & trash
+    isEditMode,
+    setIsEditMode,
+    showTrash,
+    setShowTrash,
+    trashItems,
+    selectedContentIds,
+    setSelectedContentIds,
+    openConfirmDeleteCategory,
+    openConfirmDeleteTag,
+    openConfirmDeleteSelected,
+    restoreTrashItem,
+    updateContentItem,
+    updateContentTags,
+    updateCategoryName,
+    updateTagName,
   };
 }
 

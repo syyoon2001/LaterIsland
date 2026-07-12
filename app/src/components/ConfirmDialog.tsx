@@ -35,8 +35,8 @@ export function ConfirmDialog({ title, body, actionLabel, color, onCancel, onCon
           boxShadow: '0 12px 30px rgba(63,82,64,0.25)',
         }}
       >
-        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{title}</div>
-        <div style={{ fontSize: 13, opacity: 0.65, lineHeight: 1.5, marginBottom: 20 }}>{body}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: body ? 8 : 20 }}>{title}</div>
+        {body && <div style={{ fontSize: 13, opacity: 0.65, lineHeight: 1.5, marginBottom: 20 }}>{body}</div>}
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             type="button"
