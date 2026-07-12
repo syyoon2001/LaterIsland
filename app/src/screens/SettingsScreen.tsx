@@ -1,6 +1,7 @@
 import { BackButton } from '../components/BackButton';
 import type { Language } from '../types';
 import { translations } from '../data/translations';
+import { useScrollThumb } from './useScrollThumb';
 
 interface SettingsScreenProps {
   settingsLanguage: Language;
@@ -20,6 +21,7 @@ export function SettingsScreen({
   const isKo = settingsLanguage === 'ko';
   const isEn = settingsLanguage === 'en';
   const t = translations[settingsLanguage];
+  const thumbRef = useScrollThumb('settings-scroll-content');
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
@@ -44,6 +46,7 @@ export function SettingsScreen({
       </div>
 
       <div
+        id="settings-scroll-content"
         style={{
           position: 'absolute',
           top: 76,
@@ -129,6 +132,19 @@ export function SettingsScreen({
           </div>
         </div>
       </div>
+      <div
+        ref={thumbRef}
+        style={{
+          position: 'absolute',
+          right: 3,
+          width: 4,
+          borderRadius: 4,
+          background: '#E0E8E1',
+          top: 76,
+          height: '20%',
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   );
 }

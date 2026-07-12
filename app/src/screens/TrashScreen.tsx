@@ -2,6 +2,7 @@ import { BackButton } from '../components/BackButton';
 import { ContentCard } from '../components/ContentCard';
 import type { Language } from '../types';
 import { translations } from '../data/translations';
+import { useScrollThumb } from './useScrollThumb';
 
 interface TrashItem {
   id: string;
@@ -29,6 +30,7 @@ export function TrashScreen({
   openConfirmDeletePermanently,
 }: TrashScreenProps) {
   const t = translations[language];
+  const thumbRef = useScrollThumb('trash-scroll-content');
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#F7F9F2', display: 'flex', flexDirection: 'column', zIndex: 15 }}>
@@ -52,6 +54,7 @@ export function TrashScreen({
 
       {/* Content */}
       <div
+        id="trash-scroll-content"
         style={{
           flex: 1,
           overflowY: 'auto',
@@ -81,6 +84,19 @@ export function TrashScreen({
           </div>
         )}
       </div>
+      <div
+        ref={thumbRef}
+        style={{
+          position: 'absolute',
+          right: 3,
+          width: 4,
+          borderRadius: 4,
+          background: '#E0E8E1',
+          top: 76,
+          height: '20%',
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   );
 }
