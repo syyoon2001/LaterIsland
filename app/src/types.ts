@@ -36,6 +36,7 @@ export interface ContentItem {
     vector: number[];
     model: string;
   };
+  createdAt?: number;
 }
 
 export interface ContentForm {

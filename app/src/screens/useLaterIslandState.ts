@@ -713,14 +713,24 @@ export function useLaterIslandState() {
       translatedContents.forEach(c => map.set(c.id, c));
       return aiSearchOrder.map(id => map.get(id)).filter((c): c is NonNullable<typeof c> => Boolean(c));
     } else {
-      return translatedContents.filter((c) => {
+      const filtered = translatedContents.filter((c) => {
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
         const tags = (c.tagIds || []).map(id => tagMap[id] || '').join(' ').toLowerCase();
         return c.title.toLowerCase().includes(q) || c.summary.toLowerCase().includes(q) || tags.includes(q);
       });
+      const sorted = filtered.sort((a, b) => {
+        if (sortOrder === 'alpha') {
+          return a.title.localeCompare(b.title);
+        } else if (sortOrder === 'oldest') {
+          return (a.createdAt || 0) - (b.createdAt || 0);
+        } else {
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        }
+      });
+      return sorted;
     }
-  }, [translatedContents, searchQuery, aiSearchOrder, tagMap]);
+  }, [translatedContents, searchQuery, aiSearchOrder, tagMap, sortOrder]);
 
   const enrichmentCategoryNameFallback = settingsLanguage === 'ko' ? '미분류' : 'Uncategorized';
   const enrich = (c: ContentItem) => ({

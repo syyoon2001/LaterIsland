@@ -39,6 +39,12 @@ function itemFromDoc(snap: QueryDocumentSnapshot<DocumentData>): ContentItem {
     status,
     aiGenerated: data.aiGenerated,
     embedding: data.embedding,
+    createdAt: data.createdAt && typeof data.createdAt.toMillis === 'function' 
+      ? data.createdAt.toMillis() 
+      : data.createdAt instanceof Date ? data.createdAt.getTime()
+      : typeof data.createdAt === 'number' ? data.createdAt
+      : data.createdAt?.seconds ? data.createdAt.seconds * 1000
+      : 0,
   };
 }
 
