@@ -1,6 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
 let genAI = null;
+let groqClient = null;
 
 function getClient() {
   if (!genAI) {
@@ -13,8 +15,27 @@ function getClient() {
   return genAI;
 }
 
+function getGroqClient() {
+  if (!groqClient) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error("GROQ_API_KEY environment variable is not set.");
+    }
+    groqClient = new Groq({ apiKey });
+  }
+  return groqClient;
+}
+
+function parseJsonResponse(text) {
+  try {
+    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    throw new Error("Failed to parse AI response as JSON: " + text);
+  }
+}
+
 export async function generateMetadata({ title, summary, link, existingTags }) {
-  const client = getClient();
   const modelName = process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash';
   
   let systemInstruction = "You are a helpful assistant. Analyze the given content (title, summary, link) and extract the best title, a concise summary, a single category (among: Book, Webtoon, Drama, Video, Article, Other), and an array of up to 3 relevant tags. Return the result strictly as a valid JSON object matching this schema: { \"title\": \"string\", \"summary\": \"string\", \"category\": \"string\", \"tags\": [\"string\"] }. Do not include markdown code blocks, just output the raw JSON.\n\nIMPORTANT INSTRUCTIONS FOR TAGS:\n1. Tags should NOT be highly specific to this single content (e.g., avoid \"겨드랑이색소침착\", \"화요일아침루틴\"). Instead, generate general, reusable subject/category-level tags (e.g., \"바디케어\", \"뷰티팁\", \"생활습관\").";
@@ -28,21 +49,39 @@ export async function generateMetadata({ title, summary, link, existingTags }) {
     systemInstruction += `\n2. The user has no existing tags yet. Create new general tags as instructed above.`;
   }
 
-  const model = client.getGenerativeModel({
-    model: modelName,
-    systemInstruction
-  });
-
   const prompt = `Title: ${title || 'N/A'}\nSummary: ${summary || 'N/A'}\nLink: ${link || 'N/A'}\n\nPlease generate the JSON metadata.`;
   
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
-  
   try {
-    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(jsonStr);
+    const client = getClient();
+    const model = client.getGenerativeModel({
+      model: modelName,
+      systemInstruction
+    });
+    
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    
+    return parseJsonResponse(text);
   } catch (err) {
-    throw new Error("Failed to parse Gemini response as JSON: " + text);
+    const errorString = err.toString().toLowerCase();
+    if (errorString.includes('429') || errorString.includes('quota') || errorString.includes('rate limit')) {
+      console.log("Gemini limit reached. Groq fallback used.");
+      const groqClient = getGroqClient();
+      const groqModelName = process.env.GROQ_TEXT_MODEL || 'llama-3.1-8b-instant';
+      
+      const groqResult = await groqClient.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: prompt }
+        ],
+        model: groqModelName,
+        response_format: { type: 'json_object' }
+      });
+      
+      const text = groqResult.choices[0]?.message?.content || "";
+      return parseJsonResponse(text);
+    }
+    throw err;
   }
 }
 
