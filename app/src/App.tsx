@@ -163,7 +163,7 @@ export default function App() {
           pointerEvents: coverOpacity === 0 ? 'none' : 'auto',
         }}
       >
-        <CoverScreen onEnter={() => {}} language={language} />
+        <CoverScreen language={language} />
       </div>
     );
   } else if (screen === 'auth') {

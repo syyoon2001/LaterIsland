@@ -339,33 +339,31 @@ export function AddTab({
           )}
         </div>
 
-        {!isEditing && (
-          <button
-            type="button"
-            onClick={generateAI}
-            disabled={aiLoadingStatus !== 'idle'}
-            style={{
-              width: '100%',
-              border: '1px solid #6E8C6A',
-              borderRadius: 10,
-              padding: 14,
-              background: aiLoadingStatus !== 'idle' ? '#6E8C6A' : '#F7F9F2',
-              color: aiLoadingStatus !== 'idle' ? '#fff' : '#6E8C6A',
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: aiLoadingStatus !== 'idle' ? 'default' : 'pointer',
-              opacity: aiLoadingStatus !== 'idle' ? 0.8 : 1,
-              fontFamily: 'inherit',
-              transition: 'all 0.2s',
-            }}
-          >
-            {aiLoadingStatus === 'fetching' 
-              ? (language === 'ko' ? '페이지 불러오는 중...' : 'Fetching page...') 
-              : aiLoadingStatus === 'generating' 
-                ? (language === 'ko' ? '요약 생성 중...' : 'Generating...')
-                : t.formAiAutofill}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={generateAI}
+          disabled={aiLoadingStatus !== 'idle'}
+          style={{
+            width: '100%',
+            border: '1px solid #6E8C6A',
+            borderRadius: 10,
+            padding: 14,
+            background: aiLoadingStatus !== 'idle' ? '#6E8C6A' : '#F7F9F2',
+            color: aiLoadingStatus !== 'idle' ? '#fff' : '#6E8C6A',
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: aiLoadingStatus !== 'idle' ? 'default' : 'pointer',
+            opacity: aiLoadingStatus !== 'idle' ? 0.8 : 1,
+            fontFamily: 'inherit',
+            transition: 'all 0.2s',
+          }}
+        >
+          {aiLoadingStatus === 'fetching'
+            ? (language === 'ko' ? '페이지 불러오는 중...' : 'Fetching page...')
+            : aiLoadingStatus === 'generating'
+              ? (language === 'ko' ? '요약 생성 중...' : 'Generating...')
+              : t.formAiAutofill}
+        </button>
 
         <div style={{ display: 'flex', gap: 10, width: '100%' }}>
           {isEditing && (
