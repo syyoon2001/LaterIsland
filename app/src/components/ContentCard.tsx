@@ -8,6 +8,7 @@ export interface ContentCardProps {
   title: string;
   summary?: string;
   url?: string;
+  imageUrl?: string | null;
   categoryName?: string;
   tagNames?: string[];
   status?: ContentStatus;
@@ -26,6 +27,7 @@ export function ContentCard({
   title,
   summary = '',
   url = '',
+  imageUrl = null,
   categoryName,
   tagNames = [],
   status = 'pending',
@@ -44,6 +46,7 @@ export function ContentCard({
   const resolvedCategoryName = categoryName || (language === 'ko' ? '기타' : 'Other');
 
   const [kebabOpen, setKebabOpen] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
 
   const handleCopy = useCallback(() => {
     if (url) {
@@ -52,30 +55,47 @@ export function ContentCard({
   }, [url]);
 
   return (
+    <>
     <div className={styles.card}>
-      <div className={styles.headerRow}>
-        <div style={{ flex: 1 }}>
-          <div className={styles.title}>{title}</div>
+      <div style={{ display: 'block' }}>
+        <div style={{ float: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginLeft: 12, marginBottom: 4, gap: 8 }}>
+          {showComplete && (
+            <button
+              type="button"
+              onClick={onComplete ?? undefined}
+              className={styles.statusBadge}
+            >
+              {language === 'ko' ? '완료' : 'Mark Done'}
+            </button>
+          )}
+          {isDone && (
+            <button
+              type="button"
+              className={styles.statusBadge}
+              onClick={onUncomplete ?? undefined}
+              style={onUncomplete ? { cursor: 'pointer' } : undefined}
+            >
+              {language === 'ko' ? '미완료' : 'Mark Incomplete'}
+            </button>
+          )}
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt=""
+              onClick={() => setImageModalOpen(true)}
+              style={{
+                width: 52,
+                height: 52,
+                objectFit: 'cover',
+                borderRadius: 8,
+                border: '1px solid rgba(63,82,64,0.15)',
+                cursor: 'pointer',
+              }}
+            />
+          )}
         </div>
-
-        {showComplete && (
-          <button
-            type="button"
-            onClick={onComplete ?? undefined}
-            className={styles.statusBadge}
-          >
-            {language === 'ko' ? '완료' : 'Mark Done'}
-          </button>
-        )}
-        {isDone && (
-          <div
-            className={styles.statusBadge}
-            onClick={onUncomplete ?? undefined}
-            style={onUncomplete ? { cursor: 'pointer' } : undefined}
-          >
-            {language === 'ko' ? '미완료' : 'Mark Incomplete'}
-          </div>
-        )}
+        <div className={styles.title}>{title}</div>
+        <div style={{ clear: 'both' }}></div>
       </div>
 
       <div className={styles.chipsRow}>
@@ -227,5 +247,48 @@ export function ContentCard({
         )}
       </div>
     </div>
+
+    {imageModalOpen && imageUrl && (
+      <div
+        onClick={() => setImageModalOpen(false)}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.85)',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <img
+          src={imageUrl}
+          alt=""
+          style={{ maxWidth: '90%', maxHeight: '80%', objectFit: 'contain', borderRadius: 8 }}
+          onClick={(e) => e.stopPropagation()}
+        />
+        <a
+          href={imageUrl}
+          download
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            marginTop: 20,
+            background: '#9CB5B1',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: 8,
+            textDecoration: 'none',
+            fontWeight: 600,
+            fontSize: 14,
+          }}
+        >
+          {language === 'ko' ? '다운로드' : 'Download'}
+        </a>
+      </div>
+    )}
+    </>
   );
 }

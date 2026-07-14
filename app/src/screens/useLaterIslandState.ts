@@ -23,6 +23,7 @@ import {
   updateItemFields,
   type ItemFields,
 } from '../lib/firestore';
+import { uploadItemImage } from '../lib/storage';
 import type {
   Category,
   ConfirmDialogType,
@@ -99,7 +100,10 @@ const isPendingTagId = (id: string) => id.startsWith(PENDING_TAG_PREFIX);
 const pendingTagId = (name: string) => `${PENDING_TAG_PREFIX}${name.trim()}`;
 const pendingTagName = (id: string) => id.slice(PENDING_TAG_PREFIX.length);
 
-const emptyForm: ContentForm = { title: '', url: '', summary: '', categoryId: null, tagIds: [] };
+const emptyForm: ContentForm = { title: '', url: '', summary: '', categoryId: null, tagIds: [], imageUrl: null };
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 function hasUnsavedFormInput(form: ContentForm): boolean {
   return Boolean(
@@ -120,6 +124,11 @@ export function useLaterIslandState() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
   const [form, setForm] = useState<ContentForm>(emptyForm);
+  // A newly-picked (not yet uploaded) image file, plus a local object URL for
+  // previewing it. `form.imageUrl` separately holds the already-persisted
+  // Firestore image URL (set when editing, or cleared to null on removal).
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedImageObjectUrl, setSelectedImageObjectUrl] = useState<string | null>(null);
   const [aiLoadingStatus, setAiLoadingStatus] = useState<'idle' | 'fetching' | 'generating'>('idle');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [newCategoryInput, setNewCategoryInput] = useState('');
@@ -412,6 +421,44 @@ export function useLaterIslandState() {
     setNewTagInput('');
   };
 
+  // Resets the form and any pending (unuploaded) image selection together,
+  // so a stray preview never leaks into the next Add/Edit session.
+  const resetFormAndImage = () => {
+    setForm(emptyForm);
+    setSelectedImageFile(null);
+    setSelectedImageObjectUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  };
+
+  const selectImage = (file: File) => {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      alert(settingsLanguage === 'ko' ? 'jpg, png, webp, gif 파일만 업로드할 수 있어요.' : 'Only jpg, png, webp, or gif files are allowed.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      alert(settingsLanguage === 'ko' ? '이미지 용량은 5MB를 넘을 수 없어요.' : 'Image size must be 5MB or smaller.');
+      return;
+    }
+    setSelectedImageFile(file);
+    setSelectedImageObjectUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+  };
+
+  // Clears both a pending new selection and any already-persisted image —
+  // saveContent treats form.imageUrl === null as "remove the image".
+  const removeImage = () => {
+    setSelectedImageFile(null);
+    setSelectedImageObjectUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setForm((prev) => ({ ...prev, imageUrl: null }));
+  };
+
   const generateAI = async () => {
     if (!uid) return;
     const { title, url, summary } = form;
@@ -552,16 +599,32 @@ export function useLaterIslandState() {
       console.error("Embedding generation error", e);
     }
 
+    // Captured now so the background upload (below) still has the right
+    // file/target even after the form is reset synchronously right after.
+    const imageFileToUpload = selectedImageFile;
+    const keptImageUrl = form.imageUrl;
+
     if (editingContentId) {
-      updateItemFields(uid, editingContentId, fields).catch(console.error);
+      const itemId = editingContentId;
+      (async () => {
+        const imageUrl = imageFileToUpload ? await uploadItemImage(uid, itemId, imageFileToUpload) : keptImageUrl;
+        await updateItemFields(uid, itemId, { ...fields, imageUrl });
+      })().catch(console.error);
       setEditingContentId(null);
-      setForm(emptyForm);
+      resetFormAndImage();
       if (previousTab) {
         setActiveTab(previousTab);
       }
     } else {
-      addItem(uid, fields).catch(console.error);
-      setForm(emptyForm);
+      addItem(uid, fields)
+        .then(async (itemId) => {
+          if (imageFileToUpload) {
+            const imageUrl = await uploadItemImage(uid, itemId, imageFileToUpload);
+            await updateItemFields(uid, itemId, { imageUrl });
+          }
+        })
+        .catch(console.error);
+      resetFormAndImage();
       setActiveTab('home');
     }
     setCategoryDropdownOpen(false);
@@ -573,19 +636,25 @@ export function useLaterIslandState() {
     if (!item) return;
     setPreviousTab(activeTab);
     setEditingContentId(id);
+    setSelectedImageFile(null);
+    setSelectedImageObjectUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
     setForm({
       title: item.title,
       url: item.url || '',
       summary: item.summary,
       categoryId: item.categoryId,
       tagIds: item.tagIds,
+      imageUrl: item.imageUrl ?? null,
     });
     setActiveTab('add');
   };
 
   const cancelEditContent = () => {
     setEditingContentId(null);
-    setForm(emptyForm);
+    resetFormAndImage();
     if (previousTab) {
       setActiveTab(previousTab);
     }
@@ -875,6 +944,10 @@ export function useLaterIslandState() {
     name: isPendingTagId(id) ? pendingTagName(id) : (tagMap[id] || ''),
     onRemove: () => toggleTagInForm(id),
   }));
+  // What the Add/Edit form should actually show as the image thumbnail: a
+  // freshly-picked file's local preview takes priority, else the existing
+  // persisted image (if editing and not removed).
+  const imagePreviewUrl = selectedImageObjectUrl ?? form.imageUrl;
 
   const sortLabels = {
     latest: translations[settingsLanguage].sortLatest,
@@ -896,6 +969,7 @@ export function useLaterIslandState() {
         summary: c.summary,
         categoryName,
         tagNames,
+        imageUrl: c.imageUrl ?? null,
       };
     });
 
@@ -972,6 +1046,10 @@ export function useLaterIslandState() {
     newTagInput,
     setNewTagInput,
     addNewTag,
+
+    imagePreviewUrl,
+    selectImage,
+    removeImage,
 
     generateAI,
     aiLoadingStatus,

@@ -36,6 +36,7 @@ export interface ContentItem {
     vector: number[];
     model: string;
   };
+  imageUrl?: string | null;
   createdAt?: number;
 }
 
@@ -45,6 +46,7 @@ export interface ContentForm {
   summary: string;
   categoryId: string | null;
   tagIds: string[];
+  imageUrl: string | null;
 }
 
 export type SortOrder = 'latest' | 'oldest' | 'alpha';

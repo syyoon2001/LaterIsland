@@ -39,7 +39,8 @@ function itemFromDoc(snap: QueryDocumentSnapshot<DocumentData>): ContentItem {
     status,
     aiGenerated: data.aiGenerated,
     embedding: data.embedding,
-    createdAt: data.createdAt && typeof data.createdAt.toMillis === 'function' 
+    imageUrl: data.imageUrl ?? null,
+    createdAt: data.createdAt && typeof data.createdAt.toMillis === 'function'
       ? data.createdAt.toMillis() 
       : data.createdAt instanceof Date ? data.createdAt.getTime()
       : typeof data.createdAt === 'number' ? data.createdAt
@@ -97,6 +98,7 @@ export interface ItemFields {
     vector: number[];
     model: string;
   };
+  imageUrl?: string | null;
 }
 
 export async function addItem(uid: string, fields: ItemFields): Promise<string> {
@@ -112,6 +114,7 @@ export async function addItem(uid: string, fields: ItemFields): Promise<string> 
     updatedAt: serverTimestamp(),
     ...(fields.aiGenerated !== undefined && { aiGenerated: fields.aiGenerated }),
     ...(fields.embedding !== undefined && { embedding: fields.embedding }),
+    ...(fields.imageUrl !== undefined && { imageUrl: fields.imageUrl }),
   });
   return ref.id;
 }
@@ -125,6 +128,7 @@ export function updateItemFields(uid: string, itemId: string, fields: Partial<It
   if (fields.tagIds !== undefined) patch.tagIds = fields.tagIds;
   if (fields.aiGenerated !== undefined) patch.aiGenerated = fields.aiGenerated;
   if (fields.embedding !== undefined) patch.embedding = fields.embedding;
+  if (fields.imageUrl !== undefined) patch.imageUrl = fields.imageUrl;
   return updateDoc(doc(itemsRef(uid), itemId), patch);
 }
 

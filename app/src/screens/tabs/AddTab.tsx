@@ -44,6 +44,10 @@ interface AddTabProps {
   setNewTagInput: (v: string) => void;
   addNewTag: () => void;
 
+  imagePreviewUrl: string | null;
+  selectImage: (file: File) => void;
+  removeImage: () => void;
+
   generateAI: () => void;
   aiLoadingStatus?: 'idle' | 'fetching' | 'generating';
   saveContent: () => void;
@@ -85,6 +89,9 @@ export function AddTab({
   newTagInput,
   setNewTagInput,
   addNewTag,
+  imagePreviewUrl,
+  selectImage,
+  removeImage,
   generateAI,
   aiLoadingStatus = 'idle',
   saveContent,
@@ -129,6 +136,78 @@ export function AddTab({
             rows={3}
             style={{ ...inputStyle, resize: 'none' }}
           />
+        </div>
+
+        <div>
+          <label style={labelStyle}>{t.formImageLabel}</label>
+          {imagePreviewUrl ? (
+            <div style={{ position: 'relative', width: 100, height: 100 }}>
+              <img
+                src={imagePreviewUrl}
+                alt=""
+                style={{
+                  width: 100,
+                  height: 100,
+                  objectFit: 'cover',
+                  borderRadius: 10,
+                  border: '1px solid rgba(63,82,64,0.3)',
+                  display: 'block',
+                }}
+              />
+              <button
+                type="button"
+                onClick={removeImage}
+                aria-label={t.formImageRemove}
+                style={{
+                  position: 'absolute',
+                  top: -8,
+                  right: -8,
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(63,82,64,0.3)',
+                  background: '#F7F9F2',
+                  color: '#3F5240',
+                  fontSize: 13,
+                  lineHeight: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <label
+              style={{
+                display: 'block',
+                boxSizing: 'border-box',
+                border: '1px solid rgba(63,82,64,0.3)',
+                borderRadius: 10,
+                padding: 12,
+                textAlign: 'center',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {t.formImageSelect}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) selectImage(file);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          )}
         </div>
 
         <div>

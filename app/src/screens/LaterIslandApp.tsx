@@ -101,6 +101,9 @@ export function LaterIslandApp() {
                     newTagInput={s.newTagInput}
                     setNewTagInput={s.setNewTagInput}
                     addNewTag={s.addNewTag}
+                    imagePreviewUrl={s.imagePreviewUrl}
+                    selectImage={s.selectImage}
+                    removeImage={s.removeImage}
                     generateAI={s.generateAI}
                     aiLoadingStatus={s.aiLoadingStatus}
                     saveContent={s.saveContent}

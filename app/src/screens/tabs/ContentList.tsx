@@ -30,6 +30,7 @@ export function ContentList({
           title={item.title}
           summary={item.summary}
           url={item.url ?? undefined}
+          imageUrl={item.imageUrl}
           categoryName={item.categoryName}
           tagNames={item.tagNames}
           status={item.status}
