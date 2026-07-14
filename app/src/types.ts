@@ -8,6 +8,7 @@ export interface Category {
   // doc around, soft-deleted, purely so items that referenced it can still
   // resolve a category name). Never shown/selectable once true.
   isDeleted?: boolean;
+  createdAt?: number;
 }
 
 export interface Tag {
@@ -16,6 +17,7 @@ export interface Tag {
   createdBy: CreatedBy;
   lastUsedAt: number;
   isDeleted?: boolean;
+  createdAt?: number;
 }
 
 export type ContentStatus = 'pending' | 'done' | 'trash';

@@ -15,7 +15,7 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Category, ContentItem, Tag } from '../types';
+import type { Category, ContentItem, Language, Tag } from '../types';
 
 // --- Firestore <-> app-model converters -------------------------------
 //
@@ -52,7 +52,18 @@ function itemFromDoc(snap: QueryDocumentSnapshot<DocumentData>): ContentItem {
 
 function categoryFromDoc(snap: QueryDocumentSnapshot<DocumentData>): Category {
   const data = snap.data();
-  return { id: snap.id, name: data.name ?? '', createdBy: 'user', isDeleted: !!data.isDeleted };
+  return { 
+    id: snap.id, 
+    name: data.name ?? '', 
+    createdBy: 'user', 
+    isDeleted: !!data.isDeleted,
+    createdAt: data.createdAt && typeof data.createdAt.toMillis === 'function'
+      ? data.createdAt.toMillis() 
+      : data.createdAt instanceof Date ? data.createdAt.getTime()
+      : typeof data.createdAt === 'number' ? data.createdAt
+      : data.createdAt?.seconds ? data.createdAt.seconds * 1000
+      : 0,
+  };
 }
 
 function tagFromDoc(snap: QueryDocumentSnapshot<DocumentData>): Tag {
@@ -63,6 +74,12 @@ function tagFromDoc(snap: QueryDocumentSnapshot<DocumentData>): Tag {
     createdBy: 'user',
     lastUsedAt: data.lastUsedAt ?? 0,
     isDeleted: !!data.isDeleted,
+    createdAt: data.createdAt && typeof data.createdAt.toMillis === 'function'
+      ? data.createdAt.toMillis() 
+      : data.createdAt instanceof Date ? data.createdAt.getTime()
+      : typeof data.createdAt === 'number' ? data.createdAt
+      : data.createdAt?.seconds ? data.createdAt.seconds * 1000
+      : 0,
   };
 }
 
@@ -174,6 +191,18 @@ export async function removeTagFromActiveItems(uid: string, tagId: string) {
 export async function addCategory(uid: string, name: string): Promise<string> {
   const ref = await addDoc(categoriesRef(uid), { name, isDeleted: false, createdAt: serverTimestamp() });
   return ref.id;
+}
+
+const DEFAULT_CATEGORY_NAMES: Record<Language, string[]> = {
+  ko: ['글', '영상', '기타'],
+  en: ['Article', 'Video', 'Other'],
+};
+
+// Called once, right after a new account finishes signing up, so every new
+// user starts with these categories already in place. Never run
+// retroactively for existing users.
+export async function createDefaultCategories(uid: string, language: Language): Promise<void> {
+  await Promise.all(DEFAULT_CATEGORY_NAMES[language].map((name) => addCategory(uid, name)));
 }
 
 export function renameCategory(uid: string, categoryId: string, name: string) {

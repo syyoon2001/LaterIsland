@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BackButton } from '../../components/BackButton';
+import { RenameDialog } from '../../components/RenameDialog';
 import { ContentList } from './ContentList';
 import type { Category, EnrichedContent, Language } from '../../types';
 import { translations } from '../../data/translations';
@@ -41,9 +42,8 @@ export function CategoryTab({
   const [kebabOpenId, setKebabOpenId] = useState<string | null>(null);
   const [hoveredKebabItemId, setHoveredKebabItemId] = useState<string | null>(null);
 
-  // Inline editing states for categories
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
+  // Rename modal state
+  const [renamingCategory, setRenamingCategory] = useState<CategoryRow | null>(null);
 
   return (
     <div data-screen-label={language === 'ko' ? '카테고리' : 'Category'}>
@@ -65,14 +65,14 @@ export function CategoryTab({
               categoryRows.map((cat) => (
               <div
                 key={cat.id}
-                onClick={editingCategoryId === cat.id ? undefined : cat.onSelect}
+                onClick={cat.onSelect}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
                   padding: '16px 4px',
                   borderBottom: '1px solid rgba(63,82,64,0.12)',
-                  cursor: editingCategoryId === cat.id ? 'default' : 'pointer',
+                  cursor: 'pointer',
                 }}
               >
                 {/* Kebab menu on the left end */}
@@ -133,8 +133,7 @@ export function CategoryTab({
                       >
                         <div
                           onClick={() => {
-                            setEditingCategoryId(cat.id);
-                            setEditingName(cat.name);
+                            setRenamingCategory(cat);
                             setKebabOpenId(null);
                           }}
                           onMouseEnter={() => setHoveredKebabItemId(`edit_${cat.id}`)}
@@ -179,45 +178,9 @@ export function CategoryTab({
                   )}
                 </div>
 
-                {/* Name display or input */}
-                <div
-                  style={{ flex: 1, display: 'flex', alignItems: 'center' }}
-                  onClick={(e) => editingCategoryId === cat.id && e.stopPropagation()}
-                >
-                  {editingCategoryId === cat.id ? (
-                    <input
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onBlur={() => {
-                        if (editingName.trim()) {
-                          onUpdateCategoryName?.(cat.id, editingName.trim());
-                        }
-                        setEditingCategoryId(null);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          if (editingName.trim()) {
-                            onUpdateCategoryName?.(cat.id, editingName.trim());
-                          }
-                          setEditingCategoryId(null);
-                        }
-                      }}
-                      autoFocus
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 600,
-                        border: '1px solid #6E8C6A',
-                        borderRadius: 4,
-                        padding: '2px 6px',
-                        fontFamily: 'inherit',
-                        color: '#3F5240',
-                        background: '#F7F9F2',
-                        width: '80%',
-                      }}
-                    />
-                  ) : (
-                    <div style={{ fontSize: 15, fontWeight: 600 }}>{cat.name}</div>
-                  )}
+                {/* Name display */}
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>{cat.name}</div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -240,6 +203,19 @@ export function CategoryTab({
           />
         )}
       </div>
+
+      {renamingCategory && (
+        <RenameDialog
+          title={t.renameCategoryTitle}
+          initialValue={renamingCategory.name}
+          language={language}
+          onCancel={() => setRenamingCategory(null)}
+          onSave={(newName) => {
+            onUpdateCategoryName?.(renamingCategory.id, newName);
+            setRenamingCategory(null);
+          }}
+        />
+      )}
     </div>
   );
 }

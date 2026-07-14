@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BackButton } from '../../components/BackButton';
+import { RenameDialog } from '../../components/RenameDialog';
 import { ContentList } from './ContentList';
 import type { EnrichedContent, Tag, Language } from '../../types';
 import { translations } from '../../data/translations';
@@ -41,9 +42,8 @@ export function TagsTab({
   const [kebabOpenId, setKebabOpenId] = useState<string | null>(null);
   const [hoveredKebabItemId, setHoveredKebabItemId] = useState<string | null>(null);
 
-  // Inline editing states for tags
-  const [editingTagId, setEditingTagId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
+  // Rename modal state
+  const [renamingTag, setRenamingTag] = useState<TagRow | null>(null);
 
   return (
     <div data-screen-label={language === 'ko' ? '태그 모음' : 'Tags'}>
@@ -66,14 +66,14 @@ export function TagsTab({
               tagRows.map((tag) => (
               <div
                 key={tag.id}
-                onClick={editingTagId === tag.id ? undefined : tag.onSelect}
+                onClick={tag.onSelect}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
                   padding: '16px 4px',
                   borderBottom: '1px solid rgba(63,82,64,0.12)',
-                  cursor: editingTagId === tag.id ? 'default' : 'pointer',
+                  cursor: 'pointer',
                 }}
               >
                 {/* Kebab menu on the left end */}
@@ -134,8 +134,7 @@ export function TagsTab({
                       >
                         <div
                           onClick={() => {
-                            setEditingTagId(tag.id);
-                            setEditingName(tag.name);
+                            setRenamingTag(tag);
                             setKebabOpenId(null);
                           }}
                           onMouseEnter={() => setHoveredKebabItemId(`edit_${tag.id}`)}
@@ -180,45 +179,9 @@ export function TagsTab({
                   )}
                 </div>
 
-                {/* Name display or input */}
-                <div
-                  style={{ flex: 1, display: 'flex', alignItems: 'center' }}
-                  onClick={(e) => editingTagId === tag.id && e.stopPropagation()}
-                >
-                  {editingTagId === tag.id ? (
-                    <input
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onBlur={() => {
-                        if (editingName.trim()) {
-                          onUpdateTagName?.(tag.id, editingName.trim());
-                        }
-                        setEditingTagId(null);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          if (editingName.trim()) {
-                            onUpdateTagName?.(tag.id, editingName.trim());
-                          }
-                          setEditingTagId(null);
-                        }
-                      }}
-                      autoFocus
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 600,
-                        border: '1px solid #6E8C6A',
-                        borderRadius: 4,
-                        padding: '2px 6px',
-                        fontFamily: 'inherit',
-                        color: '#3F5240',
-                        background: '#F7F9F2',
-                        width: '80%',
-                      }}
-                    />
-                  ) : (
-                    <div style={{ fontSize: 15, fontWeight: 600 }}>#{tag.name}</div>
-                  )}
+                {/* Name display */}
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>#{tag.name}</div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -241,6 +204,19 @@ export function TagsTab({
           />
         )}
       </div>
+
+      {renamingTag && (
+        <RenameDialog
+          title={t.renameTagTitle}
+          initialValue={renamingTag.name}
+          language={language}
+          onCancel={() => setRenamingTag(null)}
+          onSave={(newName) => {
+            onUpdateTagName?.(renamingTag.id, newName);
+            setRenamingTag(null);
+          }}
+        />
+      )}
     </div>
   );
 }

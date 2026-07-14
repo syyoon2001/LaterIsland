@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PhoneFrame } from '../components/PhoneFrame';
 import { getAuthErrorMessage, signInWithEmail, signInWithGoogle, signUpWithEmail, updateUserProfile } from '../lib/auth';
+import { createDefaultCategories } from '../lib/firestore';
 import type { Language } from '../types';
 
 type Mode = 'login' | 'signup';
@@ -52,6 +53,7 @@ export function AuthScreen({ onAuthenticated, language, initialMode = 'login' }:
     try {
       if (isSignup) {
         const credential = await signUpWithEmail(email, password);
+        await createDefaultCategories(credential.user.uid, language);
         if (name.trim()) {
           await updateUserProfile(credential.user, name.trim());
         }

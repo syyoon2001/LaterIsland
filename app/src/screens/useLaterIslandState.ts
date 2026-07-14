@@ -289,7 +289,7 @@ export function useLaterIslandState() {
       setConfirmDialog({
         title: t.confirmUnsavedTitle,
         actionLabel: t.confirmUnsavedAction,
-        color: '#E9A773',
+        color: '#B15C4A',
         onConfirm: () => {
           setForm(emptyForm);
           setActiveTab(tab);
@@ -350,7 +350,7 @@ export function useLaterIslandState() {
         title: translations[settingsLanguage].confirmDeleteTitle,
         body: translations[settingsLanguage].confirmDeleteBody,
         actionLabel: translations[settingsLanguage].confirmDeleteAction,
-        color: '#E9A773',
+        color: '#B15C4A',
         onConfirm: async () => {
           setConfirmDialog((prev) => (prev ? { ...prev, confirming: true, error: undefined } : prev));
           try {
@@ -517,10 +517,11 @@ export function useLaterIslandState() {
       if (data.title) patch.title = data.title;
       if (data.summary) patch.summary = data.summary;
       
-      if (data.category) {
-        const catId = await findOrCreateCategoryFs(uid, rawCategories, data.category);
-        if (catId) patch.categoryId = catId;
-      }
+      // Falls back to "기타"/"Other" when the AI didn't return a category, so
+      // an autofill always leaves the form with some category selected.
+      const suggestedCategory = data.category || (settingsLanguage === 'ko' ? '기타' : 'Other');
+      const catId = await findOrCreateCategoryFs(uid, rawCategories, suggestedCategory);
+      if (catId) patch.categoryId = catId;
       if (data.tags && Array.isArray(data.tags)) {
         // Resolve suggestions to existing tag ids where possible; anything
         // without a match becomes a pending placeholder. Nothing is written
@@ -569,11 +570,16 @@ export function useLaterIslandState() {
       }
     }
 
+    // No "미분류" state: saving without a category picked silently falls
+    // back to the user's "기타" category (created on demand if missing).
+    const resolvedCategoryId =
+      form.categoryId ?? (await findOrCreateCategoryFs(uid, rawCategories, settingsLanguage === 'ko' ? '기타' : 'Other'));
+
     const fields: ItemFields = {
       title: form.title.trim(),
       url: form.url.trim() || null,
       summary: form.summary.trim(),
-      categoryId: form.categoryId,
+      categoryId: resolvedCategoryId,
       tagIds: resolvedTagIds,
     };
 
@@ -685,8 +691,9 @@ export function useLaterIslandState() {
     const t = translations[settingsLanguage];
     setConfirmDialog({
       title: t.confirmDeleteSingleTitle,
+      body: t.confirmDeleteHint,
       actionLabel: t.delete,
-      color: '#E9A773',
+      color: '#B15C4A',
       onConfirm: () => {
         if (uid) {
           softDeleteCategory(uid, cat.id).catch(console.error);
@@ -703,8 +710,9 @@ export function useLaterIslandState() {
     const t = translations[settingsLanguage];
     setConfirmDialog({
       title: t.confirmDeleteSingleTitle,
+      body: t.confirmDeleteHint,
       actionLabel: t.delete,
-      color: '#E9A773',
+      color: '#B15C4A',
       onConfirm: () => {
         if (uid) {
           softDeleteTag(uid, tag.id).catch(console.error);
@@ -719,8 +727,9 @@ export function useLaterIslandState() {
     const t = translations[settingsLanguage];
     setConfirmDialog({
       title: t.confirmDeleteSingleTitle,
+      body: t.confirmDeleteHint,
       actionLabel: t.delete,
-      color: '#E9A773',
+      color: '#B15C4A',
       onConfirm: () => {
         if (uid) setItemDeleted(uid, id, true).catch(console.error);
         setConfirmDialog(null);
@@ -728,18 +737,26 @@ export function useLaterIslandState() {
     });
   };
 
-  const openConfirmDeletePermanently = (id: string) => {
+  // Used by the Trash screen's select mode. `onDone` lets the caller clear
+  // its local selection state once the user actually confirms (not on
+  // cancel). Handles both single- and multi-item selections.
+  const openConfirmDeleteSelectedPermanently = (ids: string[], onDone?: () => void) => {
+    if (ids.length === 0) return;
     const t = translations[settingsLanguage];
     setConfirmDialog({
-      title: t.confirmDeletePermanentlyTitle,
+      title: t.confirmDeleteSelectedTitle(ids.length),
       actionLabel: t.delete,
-      color: '#E9A773',
+      color: '#B15C4A',
       onConfirm: () => {
-        if (uid && id.startsWith('content_')) {
-          const contentId = id.replace('content_', '');
-          deleteItemPermanently(uid, contentId).catch(console.error);
+        if (uid) {
+          ids.forEach((id) => {
+            if (id.startsWith('content_')) {
+              deleteItemPermanently(uid, id.replace('content_', '')).catch(console.error);
+            }
+          });
         }
         setConfirmDialog(null);
+        onDone?.();
       },
     });
   };
@@ -887,7 +904,10 @@ export function useLaterIslandState() {
     }
   }, [translatedContents, searchQuery, aiSearchOrder, tagMap, sortOrder]);
 
-  const enrichmentCategoryNameFallback = settingsLanguage === 'ko' ? '미분류' : 'Uncategorized';
+  // No item should ever lack a resolvable category post-migration (saving
+  // always assigns one), but this stays as a defensive fallback for any
+  // categoryId that doesn't resolve to a real doc.
+  const enrichmentCategoryNameFallback = settingsLanguage === 'ko' ? '기타' : 'Other';
   const enrich = (c: ContentItem) => ({
     ...c,
     categoryName: catMapAll[c.categoryId ?? ''] || enrichmentCategoryNameFallback,
@@ -899,15 +919,22 @@ export function useLaterIslandState() {
   const pendingContents = searchedContents.filter((c) => c.status === 'pending').map(enrich);
   const doneContents = searchedContents.filter((c) => c.status === 'done').map(enrich);
 
-  const categoryRows = translatedCategories.map((cat) => {
-    const count = searchedContents.filter((c) => c.categoryId === cat.id && c.status === 'pending').length;
-    return {
-      id: cat.id,
-      name: cat.name,
-      count,
-      onSelect: () => selectCategoryFilter(cat.id),
-    };
-  });
+  const categoryRows = translatedCategories
+    .slice()
+    .sort((a, b) => {
+      if (sortOrder === 'alpha') return a.name.localeCompare(b.name);
+      if (sortOrder === 'oldest') return (a.createdAt || 0) - (b.createdAt || 0);
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    })
+    .map((cat) => {
+      const count = searchedContents.filter((c) => c.categoryId === cat.id && c.status === 'pending').length;
+      return {
+        id: cat.id,
+        name: cat.name,
+        count,
+        onSelect: () => selectCategoryFilter(cat.id),
+      };
+    });
   const selectedCategory = translatedCategories.find((c) => c.id === selectedCategoryId) || null;
   const categoryFilteredContents = selectedCategoryId
     ? searchedContents.filter((c) => c.categoryId === selectedCategoryId && c.status === 'pending').map(enrich)
@@ -915,7 +942,11 @@ export function useLaterIslandState() {
 
   const tagRows = translatedTags
     .slice()
-    .sort((a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
+    .sort((a, b) => {
+      if (sortOrder === 'alpha') return a.name.localeCompare(b.name);
+      if (sortOrder === 'oldest') return (a.createdAt || 0) - (b.createdAt || 0);
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    })
     .map((t) => {
       const count = searchedContents.filter((c) => (c.tagIds || []).includes(t.id) && c.status === 'pending').length;
       return {
@@ -1074,7 +1105,7 @@ export function useLaterIslandState() {
     openConfirmDeleteCategory,
     openConfirmDeleteTag,
     openConfirmDeleteContent,
-    openConfirmDeletePermanently,
+    openConfirmDeleteSelectedPermanently,
     restoreTrashItem,
     updateContentItem,
     updateContentTags,

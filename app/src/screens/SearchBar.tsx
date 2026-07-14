@@ -57,10 +57,11 @@ export function SearchBar({
           autoFocus
           style={{
             width: '100%',
+            height: 36,
             boxSizing: 'border-box',
             border: '1px solid rgba(63,82,64,0.3)',
             borderRadius: 10,
-            padding: '12px 40px 12px 12px',
+            padding: '0 40px 0 12px',
             fontSize: 14,
             fontFamily: 'inherit',
             background: '#F7F9F2',
@@ -87,9 +88,14 @@ export function SearchBar({
         style={{
           flexShrink: 0,
           whiteSpace: 'nowrap',
+          height: 36,
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           border: '1px solid #9CB5B1',
           borderRadius: 8,
-          padding: '6px 12px',
+          padding: '0 12px',
           background: hasSearchQuery ? '#9CB5B1' : '#F7F9F2',
           color: hasSearchQuery ? '#fff' : '#9CB5B1',
           fontSize: 12,

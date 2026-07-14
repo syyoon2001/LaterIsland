@@ -123,5 +123,56 @@
   background: rgba(63, 82, 64, 0.08);
 }
 
+.restoreButton {
+  flex-shrink: 0;
+  white-space: nowrap;
+  border: 1px solid #E9A773;
+  border-radius: 8px;
+  background: #F7F9F2;
+  color: #E9A773;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: inherit;
+}
 
+.restoreButton:hover {
+  background: #E9A773;
+  color: #fff;
+}
+
+.selectCheckbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 8px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid #E9A773;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F7F9F2;
+  flex-shrink: 0;
+  margin: 0;
+  position: relative;
+}
+
+.selectCheckbox:checked {
+  background: #E9A773;
+  border-color: #E9A773;
+}
+
+.selectCheckbox:checked::after {
+  content: '✓';
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+}
 

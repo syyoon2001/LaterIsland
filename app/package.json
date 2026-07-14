@@ -10,7 +10,8 @@
     "backup:all": "node scripts/backup-all-users.js",
     "backup:all:xlsx": "node scripts/backup-all-users.js --format=xlsx",
     "backup:all:csv": "node scripts/backup-all-users.js --format=csv",
-    "backup:all:md": "node scripts/backup-all-users.js --format=md"
+    "backup:all:md": "node scripts/backup-all-users.js --format=md",
+    "migrate:uncategorized": "node scripts/migrate-uncategorized-items.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

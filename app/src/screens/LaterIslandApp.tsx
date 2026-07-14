@@ -174,7 +174,7 @@ export function LaterIslandApp() {
           onBack={() => s.setShowTrash(false)}
           trashItems={s.trashItems}
           restoreTrashItem={s.restoreTrashItem}
-          openConfirmDeletePermanently={s.openConfirmDeletePermanently}
+          openConfirmDeleteSelectedPermanently={s.openConfirmDeleteSelectedPermanently}
         />
       )}
 
