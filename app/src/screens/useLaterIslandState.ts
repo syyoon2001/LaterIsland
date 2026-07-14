@@ -281,7 +281,7 @@ export function useLaterIslandState() {
       setConfirmDialog({
         title: t.confirmUnsavedTitle,
         actionLabel: t.confirmUnsavedAction,
-        color: '#B15C4A',
+        color: '#E9A773',
         onConfirm: () => {
           setForm(emptyForm);
           setActiveTab(tab);
@@ -344,7 +344,7 @@ export function useLaterIslandState() {
         title: translations[settingsLanguage].confirmDeleteTitle,
         body: translations[settingsLanguage].confirmDeleteBody,
         actionLabel: translations[settingsLanguage].confirmDeleteAction,
-        color: '#B15C4A',
+        color: '#E9A773',
         onConfirm: async () => {
           setConfirmDialog((prev) => (prev ? { ...prev, confirming: true, error: undefined } : prev));
           try {
@@ -612,7 +612,7 @@ export function useLaterIslandState() {
     setConfirmDialog({
       title: t.confirmDeleteSingleTitle,
       actionLabel: t.delete,
-      color: '#B15C4A',
+      color: '#E9A773',
       onConfirm: () => {
         if (uid) {
           softDeleteCategory(uid, cat.id).catch(console.error);
@@ -630,7 +630,7 @@ export function useLaterIslandState() {
     setConfirmDialog({
       title: t.confirmDeleteSingleTitle,
       actionLabel: t.delete,
-      color: '#B15C4A',
+      color: '#E9A773',
       onConfirm: () => {
         if (uid) {
           softDeleteTag(uid, tag.id).catch(console.error);
@@ -646,7 +646,7 @@ export function useLaterIslandState() {
     setConfirmDialog({
       title: t.confirmDeleteSingleTitle,
       actionLabel: t.delete,
-      color: '#B15C4A',
+      color: '#E9A773',
       onConfirm: () => {
         if (uid) setItemDeleted(uid, id, true).catch(console.error);
         setConfirmDialog(null);
@@ -659,7 +659,7 @@ export function useLaterIslandState() {
     setConfirmDialog({
       title: t.confirmDeletePermanentlyTitle,
       actionLabel: t.delete,
-      color: '#B15C4A',
+      color: '#E9A773',
       onConfirm: () => {
         if (uid && id.startsWith('content_')) {
           const contentId = id.replace('content_', '');

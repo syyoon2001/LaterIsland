@@ -62,18 +62,18 @@ export function ContentCard({
           <button
             type="button"
             onClick={onComplete ?? undefined}
-            className={styles.completeButton}
+            className={styles.statusBadge}
           >
             {language === 'ko' ? '완료' : 'Mark Done'}
           </button>
         )}
         {isDone && (
-          <div 
-            className={styles.doneBadge} 
+          <div
+            className={styles.statusBadge}
             onClick={onUncomplete ?? undefined}
             style={onUncomplete ? { cursor: 'pointer' } : undefined}
           >
-            {language === 'ko' ? '완료됨' : 'Done'}
+            {language === 'ko' ? '미완료' : 'Mark Incomplete'}
           </div>
         )}
       </div>

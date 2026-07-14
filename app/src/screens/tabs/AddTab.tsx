@@ -290,6 +290,7 @@ export function AddTab({
                     borderRadius: 8,
                     fontSize: 13,
                     cursor: 'pointer',
+                    background: '#F7F9F2',
                   }}
                 >
                   <span>#{tag.name}</span>
