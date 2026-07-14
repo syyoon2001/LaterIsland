@@ -90,6 +90,8 @@ export const translations = {
     confirmDeleteTagTitle: (name: string) => `'#${name}' 태그를 삭제하시겠습니까?`,
     confirmDeleteCategoryTitle: '이 카테고리를 삭제하시겠습니까?',
     confirmDeletePermanentlyTitle: '완전히 삭제하시겠습니까?',
+    confirmUnsavedTitle: '저장하지 않은 내용이 있어요. 나가시겠어요?',
+    confirmUnsavedAction: '나가기',
   },
   en: {
     tabHome: 'Home',
@@ -180,6 +182,8 @@ export const translations = {
     confirmDeleteTagTitle: (name: string) => `Delete '#${name}' tag?`,
     confirmDeleteCategoryTitle: 'Delete this category?',
     confirmDeletePermanentlyTitle: 'Delete permanently?',
+    confirmUnsavedTitle: 'You have unsaved changes. Leave anyway?',
+    confirmUnsavedAction: 'Leave',
   },
 };
 

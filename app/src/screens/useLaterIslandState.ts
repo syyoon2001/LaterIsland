@@ -56,26 +56,56 @@ async function findOrCreateCategoryFs(uid: string, existing: Category[], name: s
   return addCategory(uid, name.trim());
 }
 
-// Same idea for tags; also bumps recency usage on an existing match so the
-// "recently used" tag ordering stays meaningful.
-async function findOrCreateTagFs(uid: string, existing: Tag[], name: string, usage: number): Promise<string | null> {
+function matchExistingTag(existing: Tag[], name: string): Tag | undefined {
   const trimmed = (name || '').trim().toLowerCase();
-  if (!trimmed) return null;
-  const match = existing.find((t) => {
+  if (!trimmed) return undefined;
+  return existing.find((t) => {
     if (t.isDeleted) return false;
     if (t.name.toLowerCase() === trimmed) return true;
     const koName = tagTranslations.ko[t.id]?.toLowerCase();
     const enName = tagTranslations.en[t.id]?.toLowerCase();
     return koName === trimmed || enName === trimmed;
   });
+}
+
+// Look up a tag by name without creating anything or writing to Firestore.
+// Used while the user is still editing the form, before Save is pressed.
+function findExistingTagId(existing: Tag[], name: string): string | null {
+  return matchExistingTag(existing, name)?.id ?? null;
+}
+
+// Same idea for tags; also bumps recency usage on an existing match so the
+// "recently used" tag ordering stays meaningful. Only call this at the point
+// a tag is actually being committed (i.e. on Save) so browsing AI/manual tag
+// suggestions never creates Firestore documents for tags the user discards.
+async function findOrCreateTagFs(uid: string, existing: Tag[], name: string, usage: number): Promise<string | null> {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return null;
+  const match = matchExistingTag(existing, trimmed);
   if (match) {
     bumpTagUsage(uid, match.id, usage).catch(console.error);
     return match.id;
   }
-  return addTag(uid, name.trim(), usage);
+  return addTag(uid, trimmed, usage);
 }
 
+// Tags the user has picked (via AI suggestion or manual "add new tag") that
+// don't match an existing tag yet aren't written to Firestore immediately.
+// They're kept in form state as a plain string prefixed with this marker,
+// carrying the tag name, and only turned into a real Firestore tag (or
+// resolved to a match) inside saveContent, once the user actually saves.
+const PENDING_TAG_PREFIX = '__pending_tag__:';
+const isPendingTagId = (id: string) => id.startsWith(PENDING_TAG_PREFIX);
+const pendingTagId = (name: string) => `${PENDING_TAG_PREFIX}${name.trim()}`;
+const pendingTagName = (id: string) => id.slice(PENDING_TAG_PREFIX.length);
+
 const emptyForm: ContentForm = { title: '', url: '', summary: '', categoryId: null, tagIds: [] };
+
+function hasUnsavedFormInput(form: ContentForm): boolean {
+  return Boolean(
+    form.title.trim() || form.url.trim() || form.summary.trim() || form.categoryId || form.tagIds.length > 0
+  );
+}
 
 export function useLaterIslandState() {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -242,7 +272,26 @@ export function useLaterIslandState() {
     );
   }, [activeTab, showSettings, showTrash, settingsLanguage]);
 
+  // Leaving the (new-item, not editing) Add form with unfilled-but-unsaved
+  // input needs a confirmation, since navigating away discards it. Editing
+  // an existing item has its own explicit Cancel/Save flow and is untouched.
   const setTab = (tab: Tab) => {
+    if (tab !== activeTab && activeTab === 'add' && !editingContentId && hasUnsavedFormInput(form)) {
+      const t = translations[settingsLanguage];
+      setConfirmDialog({
+        title: t.confirmUnsavedTitle,
+        actionLabel: t.confirmUnsavedAction,
+        color: '#B15C4A',
+        onConfirm: () => {
+          setForm(emptyForm);
+          setActiveTab(tab);
+          setCategoryDropdownOpen(false);
+          setTagDropdownOpen(false);
+          setConfirmDialog(null);
+        },
+      });
+      return;
+    }
     setActiveTab(tab);
     setCategoryDropdownOpen(false);
     setTagDropdownOpen(false);
@@ -345,7 +394,8 @@ export function useLaterIslandState() {
   };
 
   const toggleTagInForm = (id: string) => {
-    if (uid) bumpTagUsage(uid, id, Date.now()).catch(console.error);
+    // Pending (not-yet-created) tags have no Firestore doc to bump usage on.
+    if (uid && !isPendingTagId(id)) bumpTagUsage(uid, id, Date.now()).catch(console.error);
     setForm((prev) => {
       const has = prev.tagIds.includes(id);
       const tagIds = has ? prev.tagIds.filter((x) => x !== id) : [...prev.tagIds, id];
@@ -353,10 +403,14 @@ export function useLaterIslandState() {
     });
   };
 
-  const addNewTag = async () => {
+  // Resolves a typed tag name to a real tag id if one already matches, or a
+  // pending placeholder id otherwise. No Firestore write happens here — new
+  // tags are only created in Firestore once the user actually saves the item.
+  const addNewTag = () => {
     if (!uid) return;
-    const id = await findOrCreateTagFs(uid, rawTags, newTagInput, Date.now());
-    if (!id) return;
+    const trimmed = newTagInput.trim();
+    if (!trimmed) return;
+    const id = findExistingTagId(rawTags, trimmed) ?? pendingTagId(trimmed);
     setForm((prev) => ({ ...prev, tagIds: prev.tagIds.includes(id) ? prev.tagIds : [...prev.tagIds, id] }));
     setNewTagInput('');
   };
@@ -424,10 +478,16 @@ export function useLaterIslandState() {
         if (catId) patch.categoryId = catId;
       }
       if (data.tags && Array.isArray(data.tags)) {
-        const tagIds = [];
+        // Resolve suggestions to existing tag ids where possible; anything
+        // without a match becomes a pending placeholder. Nothing is written
+        // to Firestore here — tags the user removes via "x" before saving
+        // must never end up as orphaned tag documents.
+        const tagIds: string[] = [];
         for (const tn of data.tags) {
-          const tid = await findOrCreateTagFs(uid, rawTags, tn, Date.now());
-          if (tid) tagIds.push(tid);
+          const trimmed = (tn || '').trim();
+          if (!trimmed) continue;
+          const tid = findExistingTagId(freshTags, trimmed) ?? pendingTagId(trimmed);
+          if (!tagIds.includes(tid)) tagIds.push(tid);
         }
         // 새 결과로 완전히 덮어씀 (기존 태그 초기화 후 새 태그만 할당)
         patch.tagIds = tagIds;
@@ -444,16 +504,37 @@ export function useLaterIslandState() {
 
   const saveContent = async () => {
     if (!uid || !form.title.trim()) return;
+
+    // Resolve any pending (not-yet-created) tags to real Firestore tag ids
+    // now, at the moment of saving. This is the only point new tag documents
+    // get created, so tags removed via "x" before Save never end up as
+    // orphaned Firestore documents.
+    const resolvedTagIds: string[] = [];
+    const resolvedTagNames: string[] = [];
+    for (const id of form.tagIds) {
+      if (isPendingTagId(id)) {
+        const name = pendingTagName(id);
+        const realId = await findOrCreateTagFs(uid, rawTags, name, Date.now());
+        if (realId && !resolvedTagIds.includes(realId)) {
+          resolvedTagIds.push(realId);
+          resolvedTagNames.push(name);
+        }
+      } else if (!resolvedTagIds.includes(id)) {
+        resolvedTagIds.push(id);
+        resolvedTagNames.push(tagMap[id] || '');
+      }
+    }
+
     const fields: ItemFields = {
       title: form.title.trim(),
       url: form.url.trim() || null,
       summary: form.summary.trim(),
       categoryId: form.categoryId,
-      tagIds: form.tagIds,
+      tagIds: resolvedTagIds,
     };
-    
+
     try {
-      const tagNames = fields.tagIds.map(id => tagMap[id] || '').filter(Boolean).join(' ');
+      const tagNames = resolvedTagNames.filter(Boolean).join(' ');
       const textToEmbed = `${fields.title} ${fields.summary} ${tagNames}`.trim();
       if (textToEmbed) {
         const res = await fetch('/api/ai/generate-embedding', {
@@ -794,7 +875,7 @@ export function useLaterIslandState() {
   }));
   const selectedFormTagChips = form.tagIds.map((id) => ({
     id,
-    name: tagMap[id] || '',
+    name: isPendingTagId(id) ? pendingTagName(id) : (tagMap[id] || ''),
     onRemove: () => toggleTagInForm(id),
   }));
 

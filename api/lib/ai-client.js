@@ -41,10 +41,13 @@ export async function generateMetadata({ title, summary, link, existingTags }) {
   let systemInstruction = "You are a helpful assistant. Analyze the given content (title, summary, link) and extract the best title, a concise summary, a single category (among: Book, Webtoon, Drama, Video, Article, Other), and an array of up to 3 relevant tags. Return the result strictly as a valid JSON object matching this schema: { \"title\": \"string\", \"summary\": \"string\", \"category\": \"string\", \"tags\": [\"string\"] }. Do not include markdown code blocks, just output the raw JSON.\n\nIMPORTANT INSTRUCTIONS FOR TAGS:\n1. Tags should NOT be highly specific to this single content (e.g., avoid \"겨드랑이색소침착\", \"화요일아침루틴\"). Instead, generate general, reusable subject/category-level tags (e.g., \"바디케어\", \"뷰티팁\", \"생활습관\").";
 
   if (existingTags && Array.isArray(existingTags) && existingTags.length > 0) {
-    systemInstruction += `\n2. The user already uses the following tags: ${JSON.stringify(existingTags)}. If the content's topic overlaps EVEN SLIGHTLY with any of these existing tags (e.g., broad categories, adjacent topics, or parent/child concepts), you MUST prioritize reusing the existing tags rather than creating new ones.
-    - Example: If the user has ["현대미술", "미술전시", "문화예술"] and the content is a news article about Damien Hirst's new exhibition, DO NOT create new tags like "전시", "디자인", "데이미언허스트", or "국립현대미술관". You MUST reuse "현대미술", "미술전시", or "문화예술".
-    - Rule: Completely identical expressions are not required. If it belongs to the same broad category, reuse the tag.
-    - Rule: ONLY generate a completely new tag if absolutely none of the existing tags are even remotely appropriate.`;
+    systemInstruction += `\n2. The user already uses the following tags: ${JSON.stringify(existingTags)}. Reuse an existing tag ONLY when it is genuinely relevant to this content's actual topic. Judge relevance by real subject matter, never by mere availability of a tag — do not force-fit an existing tag onto content it doesn't actually relate to.
+    - GOOD example: The user has ["현대미술", "미술전시", "문화예술"] and the content is a news article about Damien Hirst's new exhibition. The topic genuinely overlaps, so reuse "현대미술", "미술전시", or "문화예술" instead of creating new tags like "전시", "디자인", "데이미언허스트".
+    - BAD example (do NOT do this): The content is a review of using a public health center's Korean medicine clinic (topic: health/medical), and the existing tags are only ["재테크", "문화예술", "자기계발"]. None of these are actually related to health or medicine, so you must NOT reuse any of them just because they exist. Instead, create new tags such as "건강", "의료정보" that truly reflect the content's real topic.
+    - Rule: If the content's real topic does not genuinely overlap with any existing tag — even broadly — do not reuse any existing tag, no matter how few tags exist.
+    - Rule: When none of the existing tags are genuinely relevant, do not hesitate — immediately create new tag(s) that accurately reflect this content's real topic. An accurate new tag is always better than a force-reused irrelevant one.
+    - Rule: Exact wording match is not required — if a tag truly belongs to the same broad subject/category as the content, reuse it.
+    - Rule: Any new tag you create must still follow instruction #1 above — general and reusable, not overly specific to this single piece of content.`;
   } else {
     systemInstruction += `\n2. The user has no existing tags yet. Create new general tags as instructed above.`;
   }

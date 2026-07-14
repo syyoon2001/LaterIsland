@@ -101,21 +101,21 @@ export function AddTab({
     <div data-screen-label={pageTitle}>
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
-          <label style={labelStyle}>{t.formTitleLabel}</label>
-          <input
-            value={form.title}
-            onChange={(e) => setFormTitle(e.target.value)}
-            placeholder={t.formTitlePlaceholder}
-            style={inputStyle}
-          />
-        </div>
-
-        <div>
           <label style={labelStyle}>{t.formLinkLabel}</label>
           <input
             value={form.url}
             onChange={(e) => setFormUrl(e.target.value)}
             placeholder={t.formLinkPlaceholder}
+            style={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>{t.formTitleLabel}</label>
+          <input
+            value={form.title}
+            onChange={(e) => setFormTitle(e.target.value)}
+            placeholder={t.formTitlePlaceholder}
             style={inputStyle}
           />
         </div>
@@ -296,13 +296,14 @@ export function AddTab({
                   <span>{tag.mark}</span>
                 </div>
               ))}
-              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4, width: '100%', boxSizing: 'border-box' }}>
                 <input
                   value={newTagInput}
                   onChange={(e) => setNewTagInput(e.target.value)}
                   placeholder={t.formTagAddNew}
                   style={{
                     flex: 1,
+                    minWidth: 0,
                     boxSizing: 'border-box',
                     border: '1px solid rgba(63,82,64,0.3)',
                     borderRadius: 8,
@@ -317,6 +318,9 @@ export function AddTab({
                   type="button"
                   onClick={addNewTag}
                   style={{
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    boxSizing: 'border-box',
                     border: '1px solid #6E8C6A',
                     borderRadius: 8,
                     padding: '10px 14px',
