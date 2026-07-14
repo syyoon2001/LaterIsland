@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import styles from './ContentCard.module.css';
 import type { Language } from '../types';
+import { cloudinaryModalUrl, cloudinaryThumbUrl } from '../lib/cloudinary';
 
 export type ContentStatus = 'pending' | 'done' | 'trash';
 
@@ -8,6 +9,11 @@ export interface ContentCardProps {
   title: string;
   summary?: string;
   url?: string;
+  // Preferred image source: a Cloudinary public_id, transformed on the fly
+  // into an optimized thumbnail/modal URL. `imageUrl` (the untouched
+  // original) is the fallback for older items uploaded before Cloudinary
+  // was wired up, and is always what "download" hands the user.
+  imagePublicId?: string | null;
   imageUrl?: string | null;
   categoryName?: string;
   tagNames?: string[];
@@ -27,6 +33,7 @@ export function ContentCard({
   title,
   summary = '',
   url = '',
+  imagePublicId = null,
   imageUrl = null,
   categoryName,
   tagNames = [],
@@ -41,6 +48,9 @@ export function ContentCard({
 }: ContentCardProps) {
   const hasSummary = !!summary;
   const hasUrl = !!url;
+  const hasImage = !!imagePublicId || !!imageUrl;
+  const thumbSrc = imagePublicId ? cloudinaryThumbUrl(imagePublicId) : imageUrl;
+  const modalSrc = imagePublicId ? cloudinaryModalUrl(imagePublicId) : imageUrl;
   const showComplete = status === 'pending' && !!onComplete;
   const isDone = status === 'done';
   const resolvedCategoryName = categoryName || (language === 'ko' ? '기타' : 'Other');
@@ -57,45 +67,28 @@ export function ContentCard({
   return (
     <>
     <div className={styles.card}>
-      <div style={{ display: 'block' }}>
-        <div style={{ float: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginLeft: 12, marginBottom: 4, gap: 8 }}>
-          {showComplete && (
-            <button
-              type="button"
-              onClick={onComplete ?? undefined}
-              className={styles.statusBadge}
-            >
-              {language === 'ko' ? '완료' : 'Mark Done'}
-            </button>
-          )}
-          {isDone && (
-            <button
-              type="button"
-              className={styles.statusBadge}
-              onClick={onUncomplete ?? undefined}
-              style={onUncomplete ? { cursor: 'pointer' } : undefined}
-            >
-              {language === 'ko' ? '미완료' : 'Mark Incomplete'}
-            </button>
-          )}
-          {imageUrl && (
-            <img
-              src={imageUrl}
-              alt=""
-              onClick={() => setImageModalOpen(true)}
-              style={{
-                width: 52,
-                height: 52,
-                objectFit: 'cover',
-                borderRadius: 8,
-                border: '1px solid rgba(63,82,64,0.15)',
-                cursor: 'pointer',
-              }}
-            />
-          )}
-        </div>
-        <div className={styles.title}>{title}</div>
-        <div style={{ clear: 'both' }}></div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <div className={styles.title} style={{ minWidth: 0 }}>{title}</div>
+        {showComplete && (
+          <button
+            type="button"
+            onClick={onComplete ?? undefined}
+            className={styles.statusBadge}
+            style={{ flexShrink: 0 }}
+          >
+            {language === 'ko' ? '완료' : 'Mark Done'}
+          </button>
+        )}
+        {isDone && (
+          <button
+            type="button"
+            className={styles.statusBadge}
+            onClick={onUncomplete ?? undefined}
+            style={{ flexShrink: 0, cursor: onUncomplete ? 'pointer' : undefined }}
+          >
+            {language === 'ko' ? '미완료' : 'Mark Incomplete'}
+          </button>
+        )}
       </div>
 
       <div className={styles.chipsRow}>
@@ -105,6 +98,23 @@ export function ContentCard({
             #{tagName}
           </div>
         ))}
+        {hasImage && (
+          <img
+            src={thumbSrc ?? undefined}
+            alt=""
+            onClick={() => setImageModalOpen(true)}
+            style={{
+              width: 36,
+              height: 36,
+              objectFit: 'cover',
+              borderRadius: 6,
+              border: '1px solid rgba(63,82,64,0.15)',
+              cursor: 'pointer',
+              flexShrink: 0,
+              marginLeft: 'auto',
+            }}
+          />
+        )}
       </div>
 
       {hasSummary && <div className={styles.summary}>{summary}</div>}
@@ -248,7 +258,7 @@ export function ContentCard({
       </div>
     </div>
 
-    {imageModalOpen && imageUrl && (
+    {imageModalOpen && hasImage && (
       <div
         onClick={() => setImageModalOpen(false)}
         style={{
@@ -263,13 +273,13 @@ export function ContentCard({
         }}
       >
         <img
-          src={imageUrl}
+          src={modalSrc ?? undefined}
           alt=""
           style={{ maxWidth: '90%', maxHeight: '80%', objectFit: 'contain', borderRadius: 8 }}
           onClick={(e) => e.stopPropagation()}
         />
         <a
-          href={imageUrl}
+          href={imageUrl ?? undefined}
           download
           target="_blank"
           rel="noopener noreferrer"

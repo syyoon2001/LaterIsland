@@ -23,7 +23,7 @@ import {
   updateItemFields,
   type ItemFields,
 } from '../lib/firestore';
-import { uploadItemImage } from '../lib/storage';
+import { uploadImageToCloudinary } from '../lib/cloudinary';
 import type {
   Category,
   ConfirmDialogType,
@@ -100,7 +100,7 @@ const isPendingTagId = (id: string) => id.startsWith(PENDING_TAG_PREFIX);
 const pendingTagId = (name: string) => `${PENDING_TAG_PREFIX}${name.trim()}`;
 const pendingTagName = (id: string) => id.slice(PENDING_TAG_PREFIX.length);
 
-const emptyForm: ContentForm = { title: '', url: '', summary: '', categoryId: null, tagIds: [], imageUrl: null };
+const emptyForm: ContentForm = { title: '', url: '', summary: '', categoryId: null, tagIds: [], imagePublicId: null, imageUrl: null };
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -456,7 +456,7 @@ export function useLaterIslandState() {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
-    setForm((prev) => ({ ...prev, imageUrl: null }));
+    setForm((prev) => ({ ...prev, imagePublicId: null, imageUrl: null }));
   };
 
   const generateAI = async () => {
@@ -602,13 +602,20 @@ export function useLaterIslandState() {
     // Captured now so the background upload (below) still has the right
     // file/target even after the form is reset synchronously right after.
     const imageFileToUpload = selectedImageFile;
+    const keptImagePublicId = form.imagePublicId;
     const keptImageUrl = form.imageUrl;
 
     if (editingContentId) {
       const itemId = editingContentId;
       (async () => {
-        const imageUrl = imageFileToUpload ? await uploadItemImage(uid, itemId, imageFileToUpload) : keptImageUrl;
-        await updateItemFields(uid, itemId, { ...fields, imageUrl });
+        let imagePublicId = keptImagePublicId;
+        let imageUrl = keptImageUrl;
+        if (imageFileToUpload) {
+          const uploaded = await uploadImageToCloudinary(imageFileToUpload);
+          imagePublicId = uploaded.publicId;
+          imageUrl = uploaded.url;
+        }
+        await updateItemFields(uid, itemId, { ...fields, imagePublicId, imageUrl });
       })().catch(console.error);
       setEditingContentId(null);
       resetFormAndImage();
@@ -619,8 +626,8 @@ export function useLaterIslandState() {
       addItem(uid, fields)
         .then(async (itemId) => {
           if (imageFileToUpload) {
-            const imageUrl = await uploadItemImage(uid, itemId, imageFileToUpload);
-            await updateItemFields(uid, itemId, { imageUrl });
+            const uploaded = await uploadImageToCloudinary(imageFileToUpload);
+            await updateItemFields(uid, itemId, { imagePublicId: uploaded.publicId, imageUrl: uploaded.url });
           }
         })
         .catch(console.error);
@@ -647,6 +654,7 @@ export function useLaterIslandState() {
       summary: item.summary,
       categoryId: item.categoryId,
       tagIds: item.tagIds,
+      imagePublicId: item.imagePublicId ?? null,
       imageUrl: item.imageUrl ?? null,
     });
     setActiveTab('add');
@@ -969,6 +977,7 @@ export function useLaterIslandState() {
         summary: c.summary,
         categoryName,
         tagNames,
+        imagePublicId: c.imagePublicId ?? null,
         imageUrl: c.imageUrl ?? null,
       };
     });

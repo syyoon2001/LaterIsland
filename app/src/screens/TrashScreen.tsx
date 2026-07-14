@@ -12,6 +12,7 @@ interface TrashItem {
   categoryName?: string;
   tagNames?: string[];
   url?: string;
+  imagePublicId?: string | null;
   imageUrl?: string | null;
 }
 
@@ -74,6 +75,7 @@ export function TrashScreen({
                 title={item.title}
                 summary={item.summary}
                 url={item.url}
+                imagePublicId={item.imagePublicId}
                 imageUrl={item.imageUrl}
                 categoryName={item.categoryName}
                 tagNames={item.tagNames}

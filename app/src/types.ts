@@ -36,6 +36,11 @@ export interface ContentItem {
     vector: number[];
     model: string;
   };
+  // Cloudinary public_id — card/modal thumbnails are derived from this via
+  // on-the-fly transformation URLs (see lib/cloudinary.ts).
+  imagePublicId?: string | null;
+  // Cloudinary secure_url of the untouched original file, used only for
+  // "download original" in the fullscreen image modal.
   imageUrl?: string | null;
   createdAt?: number;
 }
@@ -46,6 +51,7 @@ export interface ContentForm {
   summary: string;
   categoryId: string | null;
   tagIds: string[];
+  imagePublicId: string | null;
   imageUrl: string | null;
 }
 
