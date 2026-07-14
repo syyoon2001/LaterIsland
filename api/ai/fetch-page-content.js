@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { extractYoutubeVideoId, fetchYoutubeVideoInfo } from '../lib/youtube-client.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -15,6 +16,23 @@ export default async function handler(req, res) {
   let targetUrl = link.trim();
   if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
     targetUrl = 'https://' + targetUrl;
+  }
+
+  // YouTube links get exact title/description via the YouTube Data API
+  // instead of the generic HTML crawl below (crawling YouTube's page HTML
+  // doesn't reliably yield the real title/description).
+  const youtubeVideoId = extractYoutubeVideoId(targetUrl);
+  if (youtubeVideoId) {
+    try {
+      const { title, description } = await fetchYoutubeVideoInfo(youtubeVideoId);
+      return res.status(200).json({ title, extractedText: description });
+    } catch (error) {
+      console.error('fetch-page-content (YouTube) error:', error);
+      return res.status(502).json({
+        error: 'Failed to fetch YouTube video info.',
+        details: error.message,
+      });
+    }
   }
 
   try {
