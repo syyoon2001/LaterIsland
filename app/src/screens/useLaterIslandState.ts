@@ -464,7 +464,7 @@ export function useLaterIslandState() {
       const res = await fetch('/api/ai/generate-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, link: url, summary: textToAnalyze, existingTags }),
+        body: JSON.stringify({ title, link: url, summary: textToAnalyze, existingTags, outputLanguage: settingsLanguage }),
       });
       if (!res.ok) throw new Error('API Error');
       const data = await res.json();
