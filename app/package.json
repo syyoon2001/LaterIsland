@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "backup:all": "node scripts/backup-all-users.js"
+    "backup:all": "node scripts/backup-all-users.js",
+    "backup:all:xlsx": "node scripts/backup-all-users.js --format=xlsx",
+    "backup:all:csv": "node scripts/backup-all-users.js --format=csv",
+    "backup:all:md": "node scripts/backup-all-users.js --format=md"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -21,7 +24,8 @@
     "@vitejs/plugin-react": "^4.3.4",
     "firebase-admin": "^14.1.0",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "xlsx": "^0.18.5"
   },
   "allowScripts": {
     "@firebase/util@1.15.1": true,

@@ -89,39 +89,9 @@ export function ContentCard({
 
       {hasSummary && <div className={styles.summary}>{summary}</div>}
 
-      {/* Bottom Row with Link and Kebab Menu */}
-      <div className={styles.linkRow} style={{ justifyContent: 'space-between', alignItems: 'center', position: 'relative', marginTop: 12 }}>
-        {hasUrl ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <a href={url} target="_blank" rel="noopener" className={styles.link}>
-              {language === 'ko' ? '바로가기 ↗' : 'View Link ↗'}
-            </a>
-            <button
-              type="button"
-              onClick={handleCopy}
-              title={language === 'ko' ? '링크 복사' : 'Copy Link'}
-              className={styles.copyButton}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#3F5240"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="9" y="9" width="12" height="12" rx="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
-          </div>
-        ) : (
-          <div />
-        )}
-
-        {/* Kebab menu on the bottom right */}
+      {/* Bottom Row: kebab + copy + link, grouped tightly to the right */}
+      <div className={styles.linkRow} style={{ justifyContent: 'flex-end', alignItems: 'center', gap: 8, position: 'relative', marginTop: 12 }}>
+        {/* Kebab menu */}
         <div style={{ position: 'relative' }}>
             <button
               type="button"
@@ -151,8 +121,8 @@ export function ContentCard({
               strokeLinejoin="round"
             >
               <circle cx="12" cy="12" r="1.25"></circle>
-              <circle cx="12" cy="5" r="1.25"></circle>
-              <circle cx="12" cy="19" r="1.25"></circle>
+              <circle cx="5" cy="12" r="1.25"></circle>
+              <circle cx="19" cy="12" r="1.25"></circle>
             </svg>
           </button>
 
@@ -227,6 +197,34 @@ export function ContentCard({
             </>
           )}
         </div>
+
+        {hasUrl && (
+          <>
+            <button
+              type="button"
+              onClick={handleCopy}
+              title={language === 'ko' ? '링크 복사' : 'Copy Link'}
+              className={styles.copyButton}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#3F5240"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="9" y="9" width="12" height="12" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+            <a href={url} target="_blank" rel="noopener" className={styles.link}>
+              {language === 'ko' ? '바로가기 ↗' : 'View Link ↗'}
+            </a>
+          </>
+        )}
       </div>
     </div>
   );

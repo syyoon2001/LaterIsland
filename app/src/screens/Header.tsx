@@ -3,27 +3,16 @@ import type { SortOrder, Language } from '../types';
 import { translations } from '../data/translations';
 
 interface HeaderProps {
-  searchOpen: boolean;
-  searchQuery: string;
-  setSearchQuery: (v: string) => void;
-  performAiSearch: () => void;
-  isAiSearching: boolean;
-  toggleSearch: () => void;
-  closeSearch: () => void;
+  openSearch: () => void;
 
-  menuOpen: boolean;
-  toggleMenu: () => void;
-  closeMenu: () => void;
-
-  sortSubmenuOpen: boolean;
-  toggleSortSubmenu: () => void;
+  sortMenuOpen: boolean;
+  toggleSortMenu: () => void;
+  closeSortMenu: () => void;
   sortOrder: SortOrder;
   selectSort: (order: SortOrder) => void;
 
   goSettings: () => void;
   language: Language;
-
-  setShowTrash: (v: boolean) => void;
 }
 
 const sortOptionStyle = (active: boolean) => ({
@@ -35,26 +24,15 @@ const sortOptionStyle = (active: boolean) => ({
   fontWeight: active ? 700 : 400,
 });
 
-const menuRowStyle = { padding: '10px 10px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' };
-
 export function Header({
-  searchOpen,
-  searchQuery,
-  setSearchQuery,
-  performAiSearch,
-  isAiSearching,
-  toggleSearch,
-  closeSearch,
-  menuOpen,
-  toggleMenu,
-  closeMenu,
-  sortSubmenuOpen,
-  toggleSortSubmenu,
+  openSearch,
+  sortMenuOpen,
+  toggleSortMenu,
+  closeSortMenu,
   sortOrder,
   selectSort,
   goSettings,
   language,
-  setShowTrash,
 }: HeaderProps) {
   const t = translations[language];
 
@@ -82,90 +60,37 @@ export function Header({
           <img src="/assets/logo-wordmark.png" alt="Later Island" style={{ height: 22, objectFit: 'contain' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <button type="button" onClick={toggleSearch} aria-label={t.searchPlaceholder} className={styles.iconButton} style={{ width: 36, height: 36 }}>
+          <button type="button" onClick={openSearch} aria-label={t.searchPlaceholder} className={styles.iconButton} style={{ width: 36, height: 36 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </button>
-          <button type="button" onClick={toggleMenu} aria-label={t.settings} className={styles.iconButton} style={{ width: 36, height: 36 }}>
+          <button type="button" onClick={toggleSortMenu} aria-label={t.sortBy} className={styles.iconButton} style={{ width: 36, height: 36 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="1.25"></circle>
-              <circle cx="5" cy="12" r="1.25"></circle>
-              <circle cx="19" cy="12" r="1.25"></circle>
+              <path d="m21 16-4 4-4-4"></path>
+              <path d="M17 20V4"></path>
+              <path d="m3 8 4-4 4 4"></path>
+              <path d="M7 4v16"></path>
+            </svg>
+          </button>
+          <button type="button" onClick={goSettings} aria-label={t.settings} className={styles.iconButton} style={{ width: 36, height: 36 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5240" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
         </div>
       </div>
 
-      {searchOpen && (
+      {sortMenuOpen && (
         <>
-          <div onClick={closeSearch} style={{ position: 'absolute', inset: 0, zIndex: 8 }} />
+          <div onClick={closeSortMenu} style={{ position: 'absolute', inset: 0, zIndex: 8 }} />
           <div
             style={{
               position: 'absolute',
               top: 64,
               right: 52,
-              zIndex: 9,
-              width: 'min(240px, calc(100% - 24px))',
-              background: '#F7F9F2',
-              border: '1px solid rgba(63,82,64,0.15)',
-              borderRadius: 12,
-              boxShadow: '0 8px 24px rgba(63,82,64,0.15)',
-              padding: 10,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
-          >
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t.searchPlaceholder}
-              style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                border: '1px solid rgba(63,82,64,0.3)',
-                borderRadius: 10,
-                padding: 12,
-                fontSize: 14,
-                fontFamily: 'inherit',
-                background: '#F7F9F2',
-                color: '#3F5240',
-              }}
-            />
-            <button
-              type="button"
-              onClick={performAiSearch}
-              disabled={isAiSearching || !searchQuery.trim()}
-              style={{
-                alignSelf: 'flex-start',
-                border: '1px solid #6E8C6A',
-                borderRadius: 8,
-                padding: '6px 12px',
-                background: isAiSearching ? 'transparent' : '#F7F9F2',
-                color: isAiSearching ? '#a0b89f' : '#6E8C6A',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: isAiSearching || !searchQuery.trim() ? 'default' : 'pointer',
-                fontFamily: 'inherit',
-                opacity: isAiSearching || !searchQuery.trim() ? 0.7 : 1,
-              }}
-            >
-              {isAiSearching ? (language === 'ko' ? '검색 중...' : 'Searching...') : t.searchAi}
-            </button>
-          </div>
-        </>
-      )}
-
-      {menuOpen && (
-        <>
-          <div onClick={closeMenu} style={{ position: 'absolute', inset: 0, zIndex: 8 }} />
-          <div
-            style={{
-              position: 'absolute',
-              top: 64,
-              right: 12,
               zIndex: 9,
               background: '#F7F9F2',
               border: '1px solid rgba(63,82,64,0.15)',
@@ -176,99 +101,68 @@ export function Header({
               overflow: 'hidden',
             }}
           >
-            <div
-              onClick={toggleSortSubmenu}
-              className={styles.iconButton}
-              style={{ ...menuRowStyle, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: 'auto', height: 'auto' }}
-            >
-              <span>{t.sortBy}</span>
-              <span style={{ position: 'absolute', right: 10, display: 'flex' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5240" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  {sortSubmenuOpen ? (
-                    <polyline points="18 15 12 9 6 15"></polyline>
-                  ) : (
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  )}
-                </svg>
-              </span>
-            </div>
-            {sortSubmenuOpen && (
-              <div style={{ display: 'flex', flexDirection: 'column', padding: '2px 4px 2px 14px' }}>
-                <div
-                  onClick={() => selectSort('latest')}
-                  className={styles.iconButton}
-                  style={{
-                    ...sortOptionStyle(sortOrder === 'latest'),
-                    width: 'auto',
-                    height: 'auto',
-                    position: 'relative',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  {t.sortLatest}
-                  {sortOrder === 'latest' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  )}
-                </div>
-                <div
-                  onClick={() => selectSort('oldest')}
-                  className={styles.iconButton}
-                  style={{
-                    ...sortOptionStyle(sortOrder === 'oldest'),
-                    width: 'auto',
-                    height: 'auto',
-                    position: 'relative',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  {t.sortOldest}
-                  {sortOrder === 'oldest' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  )}
-                </div>
-                <div
-                  onClick={() => selectSort('alpha')}
-                  className={styles.iconButton}
-                  style={{
-                    ...sortOptionStyle(sortOrder === 'alpha'),
-                    width: 'auto',
-                    height: 'auto',
-                    position: 'relative',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  {t.sortAlpha}
-                  {sortOrder === 'alpha' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  )}
-                </div>
+            <div style={{ padding: '6px 10px 4px', fontSize: 11, fontWeight: 700, opacity: 0.5 }}>{t.sortBy}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', padding: '2px 4px 4px' }}>
+              <div
+                onClick={() => selectSort('latest')}
+                className={styles.iconButton}
+                style={{
+                  ...sortOptionStyle(sortOrder === 'latest'),
+                  width: 'auto',
+                  height: 'auto',
+                  position: 'relative',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                {t.sortLatest}
+                {sortOrder === 'latest' && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                )}
               </div>
-            )}
-            <div
-              onClick={() => {
-                setShowTrash(true);
-                closeMenu();
-              }}
-              className={styles.iconButton}
-              style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}
-            >
-              {t.trash}
-            </div>
-            <div style={{ height: 1, background: 'rgba(63,82,64,0.12)', margin: '4px 6px' }} />
-            <div onClick={goSettings} className={styles.iconButton} style={{ ...menuRowStyle, width: 'auto', height: 'auto' }}>
-              {t.settings}
+              <div
+                onClick={() => selectSort('oldest')}
+                className={styles.iconButton}
+                style={{
+                  ...sortOptionStyle(sortOrder === 'oldest'),
+                  width: 'auto',
+                  height: 'auto',
+                  position: 'relative',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                {t.sortOldest}
+                {sortOrder === 'oldest' && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                )}
+              </div>
+              <div
+                onClick={() => selectSort('alpha')}
+                className={styles.iconButton}
+                style={{
+                  ...sortOptionStyle(sortOrder === 'alpha'),
+                  width: 'auto',
+                  height: 'auto',
+                  position: 'relative',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                {t.sortAlpha}
+                {sortOrder === 'alpha' && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E8C6A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 6, flexShrink: 0 }}>
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                )}
+              </div>
             </div>
           </div>
         </>
@@ -276,4 +170,3 @@ export function Header({
     </>
   );
 }
-

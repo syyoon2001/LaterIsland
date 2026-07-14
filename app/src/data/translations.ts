@@ -60,6 +60,10 @@ export const translations = {
 
     // SettingsScreen
     profileName: '나중에',
+    settingsSectionProfile: '프로필',
+    settingsSectionEnvironment: '환경',
+    settingsSectionData: '데이터',
+    settingsSectionAccount: '계정 관리',
     settingsLanguageLabel: '언어',
     langKo: '한국어',
     langEn: 'English',
@@ -152,6 +156,10 @@ export const translations = {
 
     // SettingsScreen
     profileName: 'Alex Kim',
+    settingsSectionProfile: 'Profile',
+    settingsSectionEnvironment: 'Preferences',
+    settingsSectionData: 'Data',
+    settingsSectionAccount: 'Account',
     settingsLanguageLabel: 'Language',
     langKo: 'Korean',
     langEn: 'English',

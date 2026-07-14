@@ -2,6 +2,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { LoadingState } from '../components/LoadingState';
 import { PhoneFrame } from '../components/PhoneFrame';
 import { Header } from './Header';
+import { SearchBar, SEARCH_BAR_HEIGHT } from './SearchBar';
 import { SettingsScreen } from './SettingsScreen';
 import { TrashScreen } from './TrashScreen';
 import { TabBar } from './TabBar';
@@ -24,26 +25,37 @@ export function LaterIslandApp() {
       {!s.showSettings && !s.showTrash && (
         <div style={{ position: 'absolute', inset: 0 }}>
           <Header
+            openSearch={s.openSearch}
+            sortMenuOpen={s.sortMenuOpen}
+            toggleSortMenu={s.toggleSortMenu}
+            closeSortMenu={s.closeSortMenu}
+            sortOrder={s.sortOrder}
+            selectSort={s.selectSort}
+            goSettings={s.goSettings}
+            language={s.settingsLanguage}
+          />
+
+          <SearchBar
             searchOpen={s.searchOpen}
             searchQuery={s.searchQuery}
             setSearchQuery={s.setSearchQuery}
             performAiSearch={s.performAiSearch}
             isAiSearching={s.isAiSearching}
-            toggleSearch={s.toggleSearch}
             closeSearch={s.closeSearch}
-            menuOpen={s.menuOpen}
-            toggleMenu={s.toggleMenu}
-            closeMenu={s.closeMenu}
-            sortSubmenuOpen={s.sortSubmenuOpen}
-            toggleSortSubmenu={s.toggleSortSubmenu}
-            sortOrder={s.sortOrder}
-            selectSort={s.selectSort}
-            goSettings={s.goSettings}
             language={s.settingsLanguage}
-            setShowTrash={s.setShowTrash}
           />
 
-          <div id={SCROLL_EL_ID} style={{ position: 'absolute', top: 76, left: 0, right: 0, bottom: 76, overflowY: 'auto' }}>
+          <div
+            id={SCROLL_EL_ID}
+            style={{
+              position: 'absolute',
+              top: s.searchOpen ? 76 + SEARCH_BAR_HEIGHT : 76,
+              left: 0,
+              right: 0,
+              bottom: 76,
+              overflowY: 'auto',
+            }}
+          >
             {s.dataLoading && s.activeTab !== 'add' ? (
               <LoadingState language={s.settingsLanguage} />
             ) : (
@@ -130,7 +142,7 @@ export function LaterIslandApp() {
               width: 4,
               borderRadius: 4,
               background: '#E0E8E1',
-              top: 76,
+              top: s.searchOpen ? 76 + SEARCH_BAR_HEIGHT : 76,
               height: '20%',
               pointerEvents: 'none',
             }}
@@ -149,6 +161,7 @@ export function LaterIslandApp() {
           openDeleteConfirm={() => s.openConfirm('delete')}
           userDisplayName={s.userDisplayName}
           userEmail={s.userEmail}
+          setShowTrash={s.setShowTrash}
         />
       )}
 

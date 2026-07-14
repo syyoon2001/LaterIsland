@@ -112,8 +112,7 @@ export function useLaterIslandState() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAiSearching, setIsAiSearching] = useState(false);
   const [aiSearchOrder, setAiSearchOrder] = useState<string[] | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [sortSubmenuOpen, setSortSubmenuOpen] = useState(false);
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [showSettings, setShowSettings] = useState(false);
   const [settingsLanguage, setSettingsLanguage] = useState<Language>('ko');
@@ -297,33 +296,31 @@ export function useLaterIslandState() {
     setTagDropdownOpen(false);
   };
 
-  const toggleSearch = () => {
-    setSearchOpen((v) => !v);
-    setMenuOpen(false);
-    setSortSubmenuOpen(false);
+  // Opens the inline search bar (see SearchBar.tsx). Closing is exclusively
+  // the bar's own X button (closeSearch below), which already clears the
+  // query — so every open is naturally blank, no toggle-close needed here.
+  const openSearch = () => {
+    setSearchOpen(true);
+    setSortMenuOpen(false);
   };
-  const closeSearch = () => setSearchOpen(false);
-
-  const toggleMenu = () => {
-    setMenuOpen((v) => !v);
+  const closeSearch = () => {
     setSearchOpen(false);
-    setSortSubmenuOpen(false);
+    setSearchQuery('');
   };
-  const closeMenu = () => {
-    setMenuOpen(false);
-    setSortSubmenuOpen(false);
+
+  const toggleSortMenu = () => {
+    setSortMenuOpen((v) => !v);
+    setSearchOpen(false);
   };
-  const toggleSortSubmenu = () => setSortSubmenuOpen((v) => !v);
+  const closeSortMenu = () => setSortMenuOpen(false);
   const selectSort = (order: SortOrder) => {
     setSortOrder(order);
-    setSortSubmenuOpen(false);
-    setMenuOpen(false);
+    setSortMenuOpen(false);
   };
 
   const goSettings = () => {
     setShowSettings(true);
-    setMenuOpen(false);
-    setSortSubmenuOpen(false);
+    setSortMenuOpen(false);
   };
   const backFromSettings = () => setShowSettings(false);
 
@@ -909,13 +906,11 @@ export function useLaterIslandState() {
     setSearchQuery,
     performAiSearch,
     isAiSearching,
-    toggleSearch,
+    openSearch,
     closeSearch,
-    menuOpen,
-    toggleMenu,
-    closeMenu,
-    sortSubmenuOpen,
-    toggleSortSubmenu,
+    sortMenuOpen,
+    toggleSortMenu,
+    closeSortMenu,
     sortOrderLabel: sortLabels[sortOrder],
     sortOrder,
     selectSort,

@@ -1,10 +1,7 @@
-import { useState } from 'react';
 import { BackButton } from '../components/BackButton';
 import type { Language } from '../types';
 import { translations } from '../data/translations';
 import { useScrollThumb } from './useScrollThumb';
-import { auth, db } from '../lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
 
 interface SettingsScreenProps {
   settingsLanguage: Language;
@@ -14,7 +11,19 @@ interface SettingsScreenProps {
   openDeleteConfirm: () => void;
   userDisplayName: string;
   userEmail: string;
+  setShowTrash: (v: boolean) => void;
 }
+
+const sectionLabelStyle = { fontSize: 12, fontWeight: 700, opacity: 0.6, marginBottom: 10 };
+const sectionDividerStyle = { height: 1, background: 'rgba(63,82,64,0.12)' };
+const settingsRowStyle = (isLast: boolean, color?: string) => ({
+  padding: '16px 4px',
+  ...(isLast ? {} : { borderBottom: '1px solid rgba(63,82,64,0.12)' }),
+  fontSize: 14,
+  fontWeight: 600,
+  cursor: 'pointer',
+  ...(color ? { color } : {}),
+});
 
 export function SettingsScreen({
   settingsLanguage,
@@ -24,57 +33,13 @@ export function SettingsScreen({
   openDeleteConfirm,
   userDisplayName,
   userEmail,
+  setShowTrash,
 }: SettingsScreenProps) {
   const isKo = settingsLanguage === 'ko';
   const isEn = settingsLanguage === 'en';
   const t = translations[settingsLanguage];
   const thumbRef = useScrollThumb('settings-scroll-content');
   const displayName = userDisplayName || userEmail.split('@')[0] || t.profileName;
-
-  const [isBackingUp, setIsBackingUp] = useState(false);
-
-  const handleBackup = async () => {
-    const uid = auth.currentUser?.uid;
-    if (!uid || isBackingUp) return;
-
-    setIsBackingUp(true);
-    try {
-      const itemsSnapshot = await getDocs(collection(db, `users/${uid}/items`));
-      const categoriesSnapshot = await getDocs(collection(db, `users/${uid}/categories`));
-      const tagsSnapshot = await getDocs(collection(db, `users/${uid}/tags`));
-
-      const items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const tags = tagsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      const backupData = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        userId: uid,
-        categories,
-        tags,
-        items
-      };
-
-      const jsonStr = JSON.stringify(backupData, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `laterisland-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      alert(t.backupSuccess);
-    } catch (err) {
-      console.error('Backup failed:', err);
-    } finally {
-      setIsBackingUp(false);
-    }
-  };
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
@@ -113,91 +78,90 @@ export function SettingsScreen({
           gap: 20,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: '#F7F9F2',
-              border: '1px solid rgba(63,82,64,0.15)',
-              flexShrink: 0,
-            }}
-          />
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>{displayName}</div>
-            {userEmail && <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>{userEmail}</div>}
+        <div>
+          <div style={sectionLabelStyle}>{t.settingsSectionProfile}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                background: '#F7F9F2',
+                border: '1px solid rgba(63,82,64,0.15)',
+                flexShrink: 0,
+              }}
+            />
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>{displayName}</div>
+              {userEmail && <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>{userEmail}</div>}
+            </div>
           </div>
         </div>
+
+        <div style={sectionDividerStyle} />
 
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, marginBottom: 10 }}>{t.settingsLanguageLabel}</div>
-          <div style={{ display: 'flex', border: '1px solid rgba(63,82,64,0.25)', borderRadius: 10, overflow: 'hidden' }}>
-            <div
-              onClick={() => setSettingsLanguage('ko')}
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                padding: 10,
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-                background: isKo ? '#6E8C6A' : '#F7F9F2',
-                color: isKo ? '#fff' : '#3F5240',
-              }}
-            >
-              한국어
-            </div>
-            <div
-              onClick={() => setSettingsLanguage('en')}
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                padding: 10,
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-                background: isEn ? '#6E8C6A' : '#F7F9F2',
-                color: isEn ? '#fff' : '#3F5240',
-                borderLeft: '1px solid rgba(63,82,64,0.25)',
-              }}
-            >
-              English
+          <div style={sectionLabelStyle}>{t.settingsSectionEnvironment}</div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, marginBottom: 10 }}>{t.settingsLanguageLabel}</div>
+            <div style={{ display: 'flex', border: '1px solid rgba(63,82,64,0.25)', borderRadius: 10, overflow: 'hidden' }}>
+              <div
+                onClick={() => setSettingsLanguage('ko')}
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  padding: 10,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  background: isKo ? '#6E8C6A' : '#F7F9F2',
+                  color: isKo ? '#fff' : '#3F5240',
+                }}
+              >
+                한국어
+              </div>
+              <div
+                onClick={() => setSettingsLanguage('en')}
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  padding: 10,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  background: isEn ? '#6E8C6A' : '#F7F9F2',
+                  color: isEn ? '#fff' : '#3F5240',
+                  borderLeft: '1px solid rgba(63,82,64,0.25)',
+                }}
+              >
+                English
+              </div>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div
-            onClick={openLogoutConfirm}
-            style={{
-              padding: '16px 4px',
-              borderBottom: '1px solid rgba(63,82,64,0.12)',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            {t.logout}
+        <div style={sectionDividerStyle} />
+
+        <div>
+          <div style={sectionLabelStyle}>{t.settingsSectionData}</div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div onClick={() => setShowTrash(true)} style={settingsRowStyle(true)}>
+              {t.trash}
+            </div>
           </div>
-          <div
-            onClick={handleBackup}
-            style={{
-              padding: '16px 4px',
-              borderBottom: '1px solid rgba(63,82,64,0.12)',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: isBackingUp ? 'default' : 'pointer',
-              color: isBackingUp ? 'rgba(63,82,64,0.5)' : '#3F5240',
-            }}
-          >
-            {isBackingUp ? t.backingUp : t.dataBackup}
-          </div>
-          <div
-            onClick={openDeleteConfirm}
-            style={{ padding: '16px 4px', fontSize: 14, fontWeight: 600, cursor: 'pointer', color: '#B15C4A' }}
-          >
-            {t.deleteAccount}
+        </div>
+
+        <div style={sectionDividerStyle} />
+
+        <div>
+          <div style={sectionLabelStyle}>{t.settingsSectionAccount}</div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div onClick={openLogoutConfirm} style={settingsRowStyle(false)}>
+              {t.logout}
+            </div>
+            <div onClick={openDeleteConfirm} style={settingsRowStyle(true, '#B15C4A')}>
+              {t.deleteAccount}
+            </div>
           </div>
         </div>
       </div>
