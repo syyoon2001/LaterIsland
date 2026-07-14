@@ -165,6 +165,9 @@ export function LaterIslandApp() {
           userDisplayName={s.userDisplayName}
           userEmail={s.userEmail}
           setShowTrash={s.setShowTrash}
+          deferredPrompt={s.deferredPrompt}
+          setDeferredPrompt={s.setDeferredPrompt}
+          isIOS={s.isIOS}
         />
       )}
 

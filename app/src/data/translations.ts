@@ -104,6 +104,10 @@ export const translations = {
     confirmDeleteHintAfter: '설정 > 휴지통에서 확인할 수 있어요',
     confirmUnsavedTitle: '저장하지 않은 내용이 있어요. 나가시겠어요?',
     confirmUnsavedAction: '나가기',
+    
+    // PWA Install
+    installApp: '앱으로 설치',
+    installAppSafariHint: 'Safari 공유 버튼 → 홈 화면에 추가',
   },
   en: {
     tabHome: 'Home',
@@ -206,6 +210,10 @@ export const translations = {
     confirmDeleteHintAfter: 'Settings > Trash',
     confirmUnsavedTitle: 'You have unsaved changes. Leave anyway?',
     confirmUnsavedAction: 'Leave',
+
+    // PWA Install
+    installApp: 'Install App',
+    installAppSafariHint: 'Safari Share button → Add to Home Screen',
   },
 };
 

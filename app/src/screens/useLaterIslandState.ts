@@ -149,6 +149,22 @@ export function useLaterIslandState() {
   const [userEmail, setUserEmail] = useState('');
   const [uid, setUid] = useState<string | null>(null);
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    const ua = window.navigator.userAgent;
+    const isIosDevice = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+    setIsIOS(isIosDevice);
+
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
   useEffect(() => {
     const unsubscribe = subscribeToAuthState((user) => {
       setUserDisplayName(user?.displayName ?? '');
@@ -1111,6 +1127,11 @@ export function useLaterIslandState() {
     updateContentTags,
     updateCategoryName,
     updateTagName,
+
+    // PWA
+    deferredPrompt,
+    setDeferredPrompt,
+    isIOS,
   };
 }
 

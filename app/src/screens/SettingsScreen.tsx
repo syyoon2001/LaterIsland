@@ -12,6 +12,9 @@ interface SettingsScreenProps {
   userDisplayName: string;
   userEmail: string;
   setShowTrash: (v: boolean) => void;
+  deferredPrompt?: any;
+  setDeferredPrompt?: (p: any) => void;
+  isIOS?: boolean;
 }
 
 const sectionLabelStyle = { fontSize: 12, fontWeight: 700, opacity: 0.6, marginBottom: 10 };
@@ -34,6 +37,9 @@ export function SettingsScreen({
   userDisplayName,
   userEmail,
   setShowTrash,
+  deferredPrompt,
+  setDeferredPrompt,
+  isIOS,
 }: SettingsScreenProps) {
   const isKo = settingsLanguage === 'ko';
   const isEn = settingsLanguage === 'en';
@@ -138,6 +144,32 @@ export function SettingsScreen({
               </div>
             </div>
           </div>
+          {(deferredPrompt || isIOS) && (
+            <div style={{ marginTop: 20 }}>
+              <div style={sectionLabelStyle}>{t.installApp}</div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {isIOS ? (
+                  <div style={{ ...settingsRowStyle(true), color: '#3F5240', opacity: 0.8, fontWeight: 500 }}>
+                    {t.installAppSafariHint}
+                  </div>
+                ) : (
+                  <div
+                    onClick={async () => {
+                      if (!deferredPrompt) return;
+                      deferredPrompt.prompt();
+                      const { outcome } = await deferredPrompt.userChoice;
+                      if (outcome === 'accepted') {
+                        setDeferredPrompt?.(null);
+                      }
+                    }}
+                    style={{ ...settingsRowStyle(true), color: '#6E8C6A' }}
+                  >
+                    {t.installApp}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={sectionDividerStyle} />
