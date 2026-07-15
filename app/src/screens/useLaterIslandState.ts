@@ -24,6 +24,7 @@ import {
   type ItemFields,
 } from '../lib/firestore';
 import { uploadImageToCloudinary } from '../lib/cloudinary';
+import { consumeShareTarget } from '../lib/shareTarget';
 import type {
   Category,
   ConfirmDialogType,
@@ -163,6 +164,23 @@ export function useLaterIslandState() {
     };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  // Consumes a pending Web Share Target payload (see src/lib/shareTarget.ts)
+  // the moment this hook first mounts, i.e. as soon as the user reaches the
+  // main app screen (immediately if already logged in, or right after
+  // completing login/signup otherwise, since LaterIslandApp only mounts once
+  // `screen === 'app'`). The shared link goes into the Add form's URL field;
+  // any shared title/text is dropped into the summary as an editable
+  // reference note that "AI 자동생성" can freely overwrite.
+  useEffect(() => {
+    const shared = consumeShareTarget();
+    if (!shared) return;
+    const noteParts = [shared.title, shared.text]
+      .map((v) => v.trim())
+      .filter((v) => v && v !== shared.url.trim());
+    setForm((prev) => ({ ...prev, url: shared.url || prev.url, summary: noteParts.join('\n') || prev.summary }));
+    setActiveTab('add');
   }, []);
 
   useEffect(() => {
