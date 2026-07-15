@@ -6,7 +6,7 @@ import { SimulationPanel } from './components/SimulationPanel';
 import { subscribeToAuthState } from './lib/auth';
 import type { Language } from './types';
 
-type Screen = 'cover' | 'auth' | 'app';
+type Screen = 'cover' | 'blank' | 'auth' | 'app';
 type AuthMode = 'login' | 'signup';
 
 // Cover screen must stay visible at least this long, and never longer than
@@ -16,8 +16,21 @@ const MAX_COVER_MS = 1500;
 // Opacity fade tone matches the app's existing 0.3s-ease transitions (e.g. useScrollThumb).
 const FADE_MS = 350;
 
+// True when the app is running installed/standalone (launched from a home
+// screen icon), as opposed to a normal browser tab. The OS already shows its
+// own splash (icon on background_color) while a standalone PWA cold-starts,
+// so showing our CoverScreen on top of that would be a duplicate splash.
+function isStandaloneDisplay(): boolean {
+  const iosStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  return window.matchMedia('(display-mode: standalone)').matches || iosStandalone;
+}
+
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('cover');
+  // Standalone launches skip 'cover' entirely and start on 'blank' (just the
+  // shared background color, matching manifest.background_color/CoverScreen
+  // so there's no visible seam after the OS splash) until the real auth
+  // check below resolves and reveals 'auth' or 'app'.
+  const [screen, setScreen] = useState<Screen>(() => (isStandaloneDisplay() ? 'blank' : 'cover'));
   const [language, setLanguage] = useState<Language>('ko');
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   // Real Firebase auth state (see src/lib/auth.ts). `authChecked` flips true
@@ -71,8 +84,10 @@ export default function App() {
       authCheckedRef.current = true;
       setIsLoggedIn(!!user);
       setAuthChecked(true);
-      // Once we're past the cover screen, keep the visible screen in sync
-      // with real auth changes (e.g. logging out from Settings). While still
+      // Once we're past the cover screen (or, on a standalone launch,
+      // straight from the 'blank' placeholder), keep the visible screen in
+      // sync with real auth changes (e.g. logging out from Settings, or the
+      // very first resolved session on a standalone cold start). While still
       // on the cover, let its own timer decide when/where to reveal.
       setScreen((prev) => (prev === 'cover' ? prev : user ? 'app' : 'auth'));
       tryAdvanceCoverRef.current();
@@ -166,6 +181,12 @@ export default function App() {
         <CoverScreen language={language} />
       </div>
     );
+  } else if (screen === 'blank') {
+    // No CoverScreen here: the OS splash (icon on manifest.background_color)
+    // already covered a standalone cold start, and body's own background
+    // (index.css) matches that same color, so rendering nothing keeps the
+    // transition seamless until auth resolves and reveals 'auth' or 'app'.
+    content = null;
   } else if (screen === 'auth') {
     content = (
       <div style={{ opacity: contentOpacity, transition: `opacity ${FADE_MS}ms ease` }}>
